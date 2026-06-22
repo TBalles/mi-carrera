@@ -10,181 +10,142 @@
 </head>
 <body>
 
-  <!-- ============ PANTALLA DE LOGIN ============ -->
-  <div id="login-screen" class="login-screen">
-    <div class="login-card">
-      <div class="login-brand">
+  <header class="topbar">
+    <div class="topbar__inner">
+      <div class="brand">
         <span class="brand__logo">◐</span>
         <div>
           <strong>Ingeniería en Informática</strong>
-          <span class="brand__sub">Plan de Estudios 2023 · UNLaM</span>
+          <span class="brand__sub">Plan de Estudios 2023 · Seguimiento</span>
         </div>
       </div>
-      <h2 id="login-title">Iniciar sesión</h2>
-      <p class="login-hint">Ingresá con tu usuario para ver y editar tu plan.</p>
-      <form id="login-form" novalidate autocomplete="on">
-        <div class="login-field">
-          <label for="login-user">Usuario</label>
-          <input id="login-user" type="text" placeholder="tu usuario" autocomplete="username" spellcheck="false" />
+      <div class="topbar__right">
+        <nav class="tabs">
+          <button class="tab tab--active" data-tab="plan">Plan de Estudios</button>
+          <button class="tab" data-tab="historial">Historial de Notas</button>
+        </nav>
+        <button id="theme-toggle" class="theme-toggle" title="Cambiar tema" aria-label="Cambiar tema">☾</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="page">
+
+    <!-- ============ TAB: PLAN ============ -->
+    <section class="tabpanel tabpanel--active" data-panel="plan">
+
+      <div class="stats">
+        <div class="stat stat--progress">
+          <div class="stat__top">
+            <span class="stat__label">Carrera completada</span>
+            <span class="stat__big" id="st-porcentaje">0%</span>
+          </div>
+          <div class="progressbar"><div class="progressbar__fill" id="st-progress"></div></div>
+          <span class="stat__hint"><span id="st-aprobadas">0</span> de <span id="st-total">0</span> materias aprobadas</span>
         </div>
-        <div class="login-field">
-          <label for="login-pass">Contraseña</label>
-          <input id="login-pass" type="password" placeholder="••••••••" autocomplete="current-password" />
+        <div class="stat">
+          <span class="stat__num" id="st-promedio">—</span>
+          <span class="stat__label">Promedio general</span>
         </div>
-        <div id="login-error" class="login-error"></div>
-        <button type="submit" class="btn btn--primary login-submit" id="login-submit">Entrar</button>
-      </form>
-      <p class="login-switch">
-        <span id="switch-text">¿No tenés cuenta?</span>
-        <button class="link-btn" id="switch-btn">Registrarse</button>
-      </p>
+        <div class="stat">
+          <span class="stat__num stat__num--cyan" id="st-disponibles">0</span>
+          <span class="stat__label">Disponibles para cursar</span>
+        </div>
+        <div class="stat">
+          <span class="stat__num stat__num--amber" id="st-cursando">0</span>
+          <span class="stat__label">Cursando</span>
+        </div>
+        <div class="stat">
+          <span class="stat__num stat__num--slate" id="st-restantes">0</span>
+          <span class="stat__label">Restantes</span>
+        </div>
+        <div class="stat stat--chart">
+          <canvas id="statusChart"></canvas>
+        </div>
+      </div>
+
+      <div class="legend" id="legend">
+        <span class="legend__item"><i class="dot dot--aprobada"></i>Aprobada</span>
+        <span class="legend__item"><i class="dot dot--cursando"></i>Cursando</span>
+        <span class="legend__item"><i class="dot dot--pendiente"></i>Pendiente de final</span>
+        <span class="legend__item"><i class="dot dot--disponible"></i>Disponible</span>
+        <span class="legend__item"><i class="dot dot--bloqueada"></i>No disponible</span>
+        <span class="legend__hint">Hacé clic en una materia para editar su estado y su nota</span>
+      </div>
+
+      <div id="malla" class="malla"></div>
+
+      <div class="panel">
+        <div class="panel__head">
+          <h2>Listado de materias</h2>
+          <div class="filters">
+            <input id="search-input" type="search" placeholder="Buscar materia o código…" />
+            <select id="status-filter">
+              <option value="all">Todos los estados</option>
+              <option value="aprobada">Aprobadas</option>
+              <option value="cursando">Cursando</option>
+              <option value="pendiente de final">Pendientes de final</option>
+              <option value="disponible">Disponibles</option>
+              <option value="bloqueada">No disponibles</option>
+            </select>
+            <button id="export-plan" class="btn btn--ghost">Exportar</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="grid-table">
+            <thead>
+              <tr>
+                <th>Código</th><th>Materia</th><th>Año</th><th>Trayecto</th>
+                <th>Estado</th><th>Correlativas</th><th>Nota</th>
+              </tr>
+            </thead>
+            <tbody id="subjects-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ============ TAB: HISTORIAL ============ -->
+    <section class="tabpanel" data-panel="historial">
+      <div class="panel__head panel__head--page">
+        <div>
+          <h2>Historial de Notas</h2>
+          <p class="muted">Tu registro por cuatrimestre. Editá las celdas y agregá materias a medida que llegan las notas.</p>
+        </div>
+        <div class="filters">
+          <button id="add-semestre" class="btn btn--primary">+ Cuatrimestre</button>
+          <button id="export-historial" class="btn btn--ghost">Exportar</button>
+          <button id="reset-historial" class="btn btn--ghost">Restaurar del Excel</button>
+        </div>
+      </div>
+      <div id="historial-container" class="historial"></div>
+    </section>
+
+  </main>
+
+  <!-- ============ MODAL EDITOR DE MATERIA ============ -->
+  <div class="modal-backdrop" id="modal-backdrop">
+    <div class="modal" id="modal" role="dialog" aria-modal="true">
+      <div class="modal__code"  id="modal-code"></div>
+      <div class="modal__title" id="modal-title"></div>
+      <div class="modal__meta"  id="modal-meta"></div>
+      <div class="modal__corr"  id="modal-corr"></div>
+      <div class="modal__field-label">Estado</div>
+      <div class="state-options" id="modal-states"></div>
+      <div class="modal__nota-row" id="modal-nota-row">
+        <div class="modal__field-label" style="margin:0">Nota</div>
+        <input type="number" min="1" max="10" id="modal-nota" placeholder="—">
+      </div>
+      <div class="modal__actions">
+        <button class="btn btn--ghost" id="modal-close">Cerrar</button>
+      </div>
     </div>
   </div>
 
-  <!-- ============ APP ============ -->
-  <div id="app">
-
-    <header class="topbar">
-      <div class="topbar__inner">
-        <div class="brand">
-          <span class="brand__logo">◐</span>
-          <div>
-            <strong>Ingeniería en Informática</strong>
-            <span class="brand__sub">Plan de Estudios 2023 · Seguimiento</span>
-          </div>
-        </div>
-        <div class="topbar__right">
-          <nav class="tabs">
-            <button class="tab tab--active" data-tab="plan">Plan de Estudios</button>
-            <button class="tab" data-tab="historial">Historial de Notas</button>
-          </nav>
-          <span class="user-chip" id="user-chip"></span>
-          <button id="theme-toggle" class="theme-toggle" title="Cambiar tema" aria-label="Cambiar tema">☾</button>
-          <button id="logout-btn" class="btn btn--ghost btn--sm">Salir</button>
-        </div>
-      </div>
-    </header>
-
-    <main class="page">
-
-      <!-- ============ TAB: PLAN ============ -->
-      <section class="tabpanel tabpanel--active" data-panel="plan">
-
-        <div class="stats">
-          <div class="stat stat--progress">
-            <div class="stat__top">
-              <span class="stat__label">Carrera completada</span>
-              <span class="stat__big" id="st-porcentaje">0%</span>
-            </div>
-            <div class="progressbar"><div class="progressbar__fill" id="st-progress"></div></div>
-            <span class="stat__hint"><span id="st-aprobadas">0</span> de <span id="st-total">0</span> materias aprobadas</span>
-          </div>
-          <div class="stat">
-            <span class="stat__num" id="st-promedio">—</span>
-            <span class="stat__label">Promedio general</span>
-          </div>
-          <div class="stat">
-            <span class="stat__num stat__num--cyan" id="st-disponibles">0</span>
-            <span class="stat__label">Disponibles para cursar</span>
-          </div>
-          <div class="stat">
-            <span class="stat__num stat__num--amber" id="st-cursando">0</span>
-            <span class="stat__label">Cursando</span>
-          </div>
-          <div class="stat">
-            <span class="stat__num stat__num--slate" id="st-restantes">0</span>
-            <span class="stat__label">Restantes</span>
-          </div>
-          <div class="stat stat--chart">
-            <canvas id="statusChart"></canvas>
-          </div>
-        </div>
-
-        <div class="legend" id="legend">
-          <span class="legend__item"><i class="dot dot--aprobada"></i>Aprobada</span>
-          <span class="legend__item"><i class="dot dot--cursando"></i>Cursando</span>
-          <span class="legend__item"><i class="dot dot--pendiente"></i>Pendiente de final</span>
-          <span class="legend__item"><i class="dot dot--disponible"></i>Disponible</span>
-          <span class="legend__item"><i class="dot dot--bloqueada"></i>No disponible</span>
-          <span class="legend__hint">Hacé clic en una materia para editar su estado y su nota</span>
-        </div>
-
-        <div id="malla" class="malla"></div>
-
-        <!-- Listado / tabla de materias -->
-        <div class="panel">
-          <div class="panel__head">
-            <h2>Listado de materias</h2>
-            <div class="filters">
-              <input id="search-input" type="search" placeholder="Buscar materia o código…" />
-              <select id="status-filter">
-                <option value="all">Todos los estados</option>
-                <option value="aprobada">Aprobadas</option>
-                <option value="cursando">Cursando</option>
-                <option value="pendiente de final">Pendientes de final</option>
-                <option value="disponible">Disponibles</option>
-                <option value="bloqueada">No disponibles</option>
-              </select>
-              <button id="export-plan" class="btn btn--ghost">Exportar</button>
-            </div>
-          </div>
-          <div class="table-wrap">
-            <table class="grid-table">
-              <thead>
-                <tr>
-                  <th>Código</th><th>Materia</th><th>Año</th><th>Trayecto</th>
-                  <th>Estado</th><th>Correlativas</th><th>Nota</th>
-                </tr>
-              </thead>
-              <tbody id="subjects-body"></tbody>
-            </table>
-          </div>
-        </div>
-
-      </section>
-
-      <!-- ============ TAB: HISTORIAL ============ -->
-      <section class="tabpanel" data-panel="historial">
-        <div class="panel__head panel__head--page">
-          <div>
-            <h2>Historial de Notas</h2>
-            <p class="muted">Tu registro por cuatrimestre. Editá las celdas y agregá materias a medida que llegan las notas.</p>
-          </div>
-          <div class="filters">
-            <button id="add-semestre" class="btn btn--primary">+ Cuatrimestre</button>
-            <button id="export-historial" class="btn btn--ghost">Exportar</button>
-            <button id="reset-historial" class="btn btn--ghost">Restaurar del Excel</button>
-          </div>
-        </div>
-        <div id="historial-container" class="historial"></div>
-      </section>
-
-    </main>
-
-    <!-- ============ MODAL EDITOR DE MATERIA ============ -->
-    <div class="modal-backdrop" id="modal-backdrop">
-      <div class="modal" id="modal" role="dialog" aria-modal="true">
-        <div class="modal__code"  id="modal-code"></div>
-        <div class="modal__title" id="modal-title"></div>
-        <div class="modal__meta"  id="modal-meta"></div>
-        <div class="modal__corr"  id="modal-corr"></div>
-        <div class="modal__field-label">Estado</div>
-        <div class="state-options" id="modal-states"></div>
-        <div class="modal__nota-row" id="modal-nota-row">
-          <div class="modal__field-label" style="margin:0">Nota</div>
-          <input type="number" min="1" max="10" id="modal-nota" placeholder="—">
-        </div>
-        <div class="modal__actions">
-          <button class="btn btn--ghost" id="modal-close">Cerrar</button>
-        </div>
-      </div>
-    </div>
-
-    <footer class="foot">
-      <span>Datos basados en el Plan de Estudios 2023 — UNLaM · DIIT</span>
-    </footer>
-
-  </div><!-- /#app -->
+  <footer class="foot">
+    <span>Datos basados en el Plan de Estudios 2023 — UNLaM · DIIT</span>
+  </footer>
 
 </body>
 </html>
