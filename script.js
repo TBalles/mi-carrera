@@ -6,16 +6,39 @@
 let planData = [];
 let correlativas = {};
 let customEstados = {};         // override por código -> estado
+let customNotas = {};           // override por código -> nota
 let statusChart = null;
 
 const STORE_ESTADOS = 'plan.customEstados.v2';
+const STORE_NOTAS = 'plan.customNotas.v1';
 const STORE_HISTORIAL = 'plan.historial.v2';
+const STORE_THEME = 'plan.theme.v1';
 
-// Estados que el usuario puede asignar (en orden de ciclo al hacer clic)
+// Estados que el usuario puede asignar (en orden de ciclo)
 const CICLO = ['no cursada', 'cursando', 'pendiente de final', 'aprobada'];
 
-// Una correlativa se considera cumplida (para CURSAR) si está regularizada o mejor
-const CUMPLE = new Set(['aprobada', 'cursando', 'pendiente de final']);
+// Una correlativa se considera CUMPLIDA si está aprobada o pendiente de final.
+// (Estar cursándola NO habilita las que dependen de ella.)
+const HABILITA = new Set(['aprobada', 'pendiente de final']);
+
+/* ════════════════════════════════════════════════════════
+   Tema (oscuro / claro)
+   ════════════════════════════════════════════════════════ */
+function applyTheme(theme) {
+  if (theme === 'light') document.documentElement.setAttribute('data-theme', 'light');
+  else document.documentElement.removeAttribute('data-theme');
+  const btn = document.getElementById('theme-toggle');
+  if (btn) btn.textContent = theme === 'light' ? '☀' : '☾';
+}
+function initTheme() {
+  const saved = localStorage.getItem(STORE_THEME) || 'dark';
+  applyTheme(saved);
+  document.getElementById('theme-toggle').addEventListener('click', () => {
+    const now = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+    localStorage.setItem(STORE_THEME, now);
+    applyTheme(now);
+  });
+}
 
 /* ════════════════════════════════════════════════════════
    Tabs
@@ -33,13 +56,14 @@ function initTabs() {
 /* ════════════════════════════════════════════════════════
    Carga y cálculo del plan
    ════════════════════════════════════════════════════════ */
-function loadCustomEstados() {
-  try { customEstados = JSON.parse(localStorage.getItem(STORE_ESTADOS)) || {}; }
-  catch { customEstados = {}; }
+function loadStore(key) {
+  try { return JSON.parse(localStorage.getItem(key)) || {}; }
+  catch { return {}; }
 }
-function saveCustomEstados() {
-  localStorage.setItem(STORE_ESTADOS, JSON.stringify(customEstados));
-}
+function loadCustomEstados() { customEstados = loadStore(STORE_ESTADOS); }
+function saveCustomEstados() { localStorage.setItem(STORE_ESTADOS, JSON.stringify(customEstados)); }
+function loadCustomNotas() { customNotas = loadStore(STORE_NOTAS); }
+function saveCustomNotas() { localStorage.setItem(STORE_NOTAS, JSON.stringify(customNotas)); }
 
 function condicionToEstado(condicion) {
   if (condicion === 'Aprobada') return 'aprobada';
@@ -52,18 +76,23 @@ function baseEstado(item) {
   return condicionToEstado(item.condicion);
 }
 
+function baseNota(item) {
+  if (item.codigo in customNotas) return customNotas[item.codigo];
+  return item.nota || 0;
+}
+
 // Recalcula disponibilidad: una materia "no cursada" está Disponible si
-// TODAS sus correlativas están al menos cursadas (regularizadas).
+// TODAS sus correlativas están aprobadas o pendientes de final.
 function recalcular() {
   const estadoPorCodigo = {};
   planData.forEach(i => { estadoPorCodigo[i.codigo] = i.estado; });
 
   planData.forEach(item => {
     const prereqs = correlativas[item.codigo] || [];
-    const habilitada = prereqs.every(c => CUMPLE.has(estadoPorCodigo[c]));
+    const habilitada = prereqs.every(c => HABILITA.has(estadoPorCodigo[c]));
     item.habilitada = habilitada;            // ¿cumple correlativas?
-    if (CUMPLE.has(item.estado)) {
-      item.disponibilidad = 'No disponible'; // ya cursada/aprobada => no "para cursar"
+    if (item.estado !== 'no cursada') {
+      item.disponibilidad = 'No disponible'; // ya en curso/pendiente/aprobada => no "para cursar"
     } else {
       item.disponibilidad = habilitada ? 'Disponible' : 'No disponible';
     }
@@ -86,7 +115,8 @@ async function loadPlan() {
   planData = plan;
   correlativas = corr;
   loadCustomEstados();
-  planData.forEach(i => { i.estado = baseEstado(i); });
+  loadCustomNotas();
+  planData.forEach(i => { i.estado = baseEstado(i); i.nota = baseNota(i); });
   recalcular();
   renderAll();
 }
@@ -103,13 +133,22 @@ function setEstado(codigo, nuevo) {
   renderAll();
 }
 
+function setNota(codigo, nota) {
+  const item = planData.find(i => i.codigo === codigo);
+  if (!item) return;
+  item.nota = nota;
+  if (!nota) delete customNotas[codigo];
+  else customNotas[codigo] = nota;
+  saveCustomNotas();
+  renderAll();
+}
+
 /* ════════════════════════════════════════════════════════
    Render
    ════════════════════════════════════════════════════════ */
 function renderAll() {
   renderStats();
   renderMalla();
-  renderTable();
 }
 
 function getStats() {
@@ -146,7 +185,7 @@ function renderChart(s) {
     labels: ['Aprobadas', 'Cursando', 'Pendientes', 'Disponibles', 'No disponibles'],
     datasets: [{
       data: [s.aprobadas, s.cursando, s.pendientes, s.disponibles, s.bloqueadas],
-      backgroundColor: ['#16a34a', '#d97706', '#2563eb', '#0891b2', '#cbd5e1'],
+      backgroundColor: ['#22c55e', '#f59e0b', '#60a5fa', '#22d3ee', '#475569'],
       borderWidth: 0,
     }],
   };
@@ -165,11 +204,8 @@ function renderChart(s) {
   });
 }
 
-const ROMANO = { 1: 'I', 2: 'II', 3: 'III', 4: 'IV', 5: 'V' };
-
 function renderMalla() {
   const cont = document.getElementById('malla');
-  // Agrupar por año
   const anios = [1, 2, 3, 4, 5];
   let html = '';
 
@@ -207,13 +243,7 @@ function renderMalla() {
 
   cont.innerHTML = html;
   cont.querySelectorAll('.subject').forEach(el => {
-    el.addEventListener('click', () => {
-      const cod = parseInt(el.dataset.codigo, 10);
-      const item = planData.find(i => i.codigo === cod);
-      const idx = CICLO.indexOf(item.estado);
-      const next = CICLO[(idx + 1) % CICLO.length];
-      setEstado(cod, next);
-    });
+    el.addEventListener('click', () => openModal(parseInt(el.dataset.codigo, 10)));
   });
 }
 
@@ -232,7 +262,7 @@ function subjectCard(item) {
   const nota = (item.estado === 'aprobada' && item.nota > 0)
     ? `<span class="subject__nota">${item.nota}</span>` : '';
   return `
-    <div class="subject subject--${st}" data-codigo="${item.codigo}" title="${item.materia}">
+    <div class="subject subject--${st}" data-codigo="${item.codigo}" title="${escAttr(item.materia)}">
       <span class="subject__st"></span>
       <span class="subject__code">${item.codigo}</span>
       <span class="subject__name">${item.materia}</span>
@@ -240,86 +270,100 @@ function subjectCard(item) {
     </div>`;
 }
 
+/* ════════════════════════════════════════════════════════
+   Modal editor de materia
+   ════════════════════════════════════════════════════════ */
 const ESTADO_LABEL = {
   aprobada: 'Aprobada', cursando: 'Cursando',
   'pendiente de final': 'Pendiente de final', 'no cursada': 'No cursada',
 };
 
-function renderTable() {
-  const body = document.getElementById('subjects-body');
-  const q = (document.getElementById('search-input').value || '').trim().toLowerCase();
-  const filtro = document.getElementById('status-filter').value;
+let modalCodigo = null;
 
-  const rows = planData.filter(item => {
-    const matchText = item.materia.toLowerCase().includes(q) || String(item.codigo).includes(q);
-    let matchStatus = true;
-    if (filtro === 'disponible' || filtro === 'bloqueada') matchStatus = displayStatus(item) === filtro;
-    else if (filtro !== 'all') matchStatus = item.estado === filtro;
-    return matchText && matchStatus;
-  });
+function openModal(codigo) {
+  const item = planData.find(i => i.codigo === codigo);
+  if (!item) return;
+  modalCodigo = codigo;
 
-  if (!rows.length) {
-    body.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px">Sin resultados.</td></tr>`;
-    return;
+  document.getElementById('modal-code').textContent = `Código ${item.codigo}`;
+  document.getElementById('modal-title').textContent = item.materia;
+  const anioLabel = item.cuatri === 'Transversal' ? 'Transversal' : `${item.anio}º año · ${item.cuatri}`;
+  document.getElementById('modal-meta').textContent = `${item.trayecto || '—'} · ${anioLabel}`;
+
+  // Correlativas
+  const corr = correlativas[item.codigo] || [];
+  const corrEl = document.getElementById('modal-corr');
+  if (!corr.length) {
+    corrEl.innerHTML = 'Sin correlativas.';
+  } else {
+    const parts = corr.map(c => {
+      const dep = planData.find(p => p.codigo === c);
+      const ok = dep && HABILITA.has(dep.estado);
+      const nombre = dep ? dep.materia : c;
+      return `<span class="${ok ? 'ok' : 'no'}">${ok ? '✓' : '✗'} ${nombre}</span>`;
+    });
+    corrEl.innerHTML = 'Correlativas: ' + parts.join(' · ');
   }
 
-  body.innerHTML = rows.map(item => {
-    const st = displayStatus(item);
-    const badge = `<span class="badge badge--${st}">${ESTADO_LABEL[item.estado] || (st === 'disponible' ? 'Disponible' : 'No disponible')}</span>`;
-    const sel = `<select class="state-select" data-codigo="${item.codigo}">
-      ${CICLO.map(e => `<option value="${e}" ${item.estado === e ? 'selected' : ''}>${ESTADO_LABEL[e]}</option>`).join('')}
-    </select>`;
-    const corr = correlativas[item.codigo] || [];
-    const corrHtml = corr.length
-      ? corr.map(c => {
-          const ok = CUMPLE.has((planData.find(p => p.codigo === c) || {}).estado);
-          return `<span class="${ok ? 'ok' : 'no'}">${c}</span>`;
-        }).join(', ')
-      : '—';
-    const anioLabel = item.cuatri === 'Transversal' ? 'Trans.' : `${item.anio}º ${item.cuatri}`;
-    const notaVal = item.nota > 0 ? item.nota : '';
-    return `
-      <tr>
-        <td class="code">${item.codigo}</td>
-        <td>${item.materia}</td>
-        <td>${anioLabel}</td>
-        <td>${item.trayecto || '—'}</td>
-        <td>${sel}</td>
-        <td class="corr-list">${corrHtml}</td>
-        <td><input class="nota-input" type="number" min="0" max="10" data-codigo="${item.codigo}" value="${notaVal}" placeholder="—"></td>
-      </tr>`;
-  }).join('');
+  renderModalStates(item.estado);
+  renderModalNota(item);
 
-  body.querySelectorAll('.state-select').forEach(sel => {
-    sel.addEventListener('change', e => setEstado(parseInt(e.target.dataset.codigo, 10), e.target.value));
-  });
-  body.querySelectorAll('.nota-input').forEach(inp => {
-    inp.addEventListener('change', e => {
-      const cod = parseInt(e.target.dataset.codigo, 10);
-      const item = planData.find(i => i.codigo === cod);
-      let v = parseInt(e.target.value, 10);
-      if (isNaN(v)) v = 0;
-      v = Math.max(0, Math.min(10, v));
-      item.nota = v;
-      renderStats();
-      renderMalla();
+  document.getElementById('modal-backdrop').classList.add('open');
+}
+
+function renderModalStates(actual) {
+  const cont = document.getElementById('modal-states');
+  cont.innerHTML = CICLO.map(e =>
+    `<button class="state-opt ${e === actual ? 'state-opt--active' : ''}" data-st="${e}">
+       <i></i>${ESTADO_LABEL[e]}
+     </button>`
+  ).join('');
+  cont.querySelectorAll('.state-opt').forEach(btn => {
+    btn.addEventListener('click', () => {
+      setEstado(modalCodigo, btn.dataset.st);
+      // refrescar el modal con el item actualizado
+      const item = planData.find(i => i.codigo === modalCodigo);
+      renderModalStates(item.estado);
+      renderModalNota(item);
     });
   });
 }
 
-function initPlanControls() {
-  document.getElementById('search-input').addEventListener('input', renderTable);
-  document.getElementById('status-filter').addEventListener('change', renderTable);
-  document.getElementById('export-plan').addEventListener('click', exportPlan);
+function renderModalNota(item) {
+  const row = document.getElementById('modal-nota-row');
+  const input = document.getElementById('modal-nota');
+  // La nota solo tiene sentido cuando la materia está aprobada
+  row.classList.toggle('is-hidden', item.estado !== 'aprobada');
+  input.value = item.nota > 0 ? item.nota : '';
 }
 
-function exportPlan() {
-  const out = planData.map(i => ({
-    codigo: i.codigo, materia: i.materia, trayecto: i.trayecto,
-    anio: i.anio, cuatri: i.cuatri, estado: i.estado,
-    disponibilidad: i.disponibilidad, nota: i.nota,
-  }));
-  descargar('plan_actualizado.json', JSON.stringify(out, null, 2));
+function commitModalNota() {
+  if (modalCodigo === null) return;
+  const item = planData.find(i => i.codigo === modalCodigo);
+  if (!item || item.estado !== 'aprobada') return;
+  const input = document.getElementById('modal-nota');
+  let v = parseInt(input.value, 10);
+  if (isNaN(v)) v = 0;
+  else v = Math.max(1, Math.min(10, v));
+  setNota(modalCodigo, v);
+}
+
+function closeModal() {
+  commitModalNota();
+  document.getElementById('modal-backdrop').classList.remove('open');
+  modalCodigo = null;
+}
+
+function initModal() {
+  document.getElementById('modal-close').addEventListener('click', closeModal);
+  document.getElementById('modal-backdrop').addEventListener('click', e => {
+    if (e.target.id === 'modal-backdrop') closeModal();
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && document.getElementById('modal-backdrop').classList.contains('open')) closeModal();
+  });
+  // Guardar la nota al salir del campo
+  document.getElementById('modal-nota').addEventListener('change', commitModalNota);
 }
 
 /* ════════════════════════════════════════════════════════
@@ -367,7 +411,6 @@ function notaClase(val) {
 }
 
 function promedioSemestre(sem) {
-  // Promedio de la mejor nota final/promoción de cada materia con nota numérica
   const finals = sem.materias.map(m => {
     const cand = [m.notaPromocion, m.segundoIntento, m.tercerIntento]
       .map(x => parseFloat(x)).filter(x => !isNaN(x));
@@ -431,7 +474,6 @@ function bindHistorialEvents() {
         e.target.className = `hist-input hist-input--nota ${notaClase(e.target.value)}`;
       }
       saveHistorial();
-      // refrescar promedio del semestre sin re-render total
       const avgEl = cont.querySelectorAll('.semestre__avg')[s];
       if (avgEl) {
         const avg = promedioSemestre(historialData[s]);
@@ -477,7 +519,6 @@ function initHistorialControls() {
   document.getElementById('add-semestre').addEventListener('click', () => {
     historialData.push({ semestre: 'Nuevo cuatrimestre', materias: [nuevaMateria()] });
     saveHistorial(); renderHistorial();
-    // foco en el título nuevo
     const titles = document.querySelectorAll('.semestre__title');
     if (titles.length) titles[titles.length - 1].focus();
   });
@@ -513,15 +554,16 @@ function descargar(nombre, contenido) {
    Init
    ════════════════════════════════════════════════════════ */
 window.addEventListener('DOMContentLoaded', async () => {
+  initTheme();
   initTabs();
-  initPlanControls();
+  initModal();
   initHistorialControls();
   try {
     await loadPlan();
   } catch (err) {
     console.error(err);
     document.getElementById('malla').innerHTML =
-      '<p class="muted" style="padding:20px">No se pudo cargar el plan. Abrí la página desde un servidor local (no con doble clic).</p>';
+      '<p class="muted" style="padding:20px">No se pudo cargar el plan. Abrí la página desde un servidor (GitHub Pages) y no con doble clic en el archivo.</p>';
   }
   await loadHistorial();
 });
