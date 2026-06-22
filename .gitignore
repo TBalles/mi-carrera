@@ -1,0 +1,10 @@
+# Configuración local de Claude Code (permisos por máquina)
+.claude/settings.local.json
+
+# Archivos del sistema
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Temporales de Office (si se abre el Excel)
+~$*

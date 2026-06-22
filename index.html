@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mi Carrera · Ingeniería en Informática</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="script.js" defer></script>
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="topbar__inner">
+      <div class="brand">
+        <span class="brand__logo">◐</span>
+        <div>
+          <strong>Ingeniería en Informática</strong>
+          <span class="brand__sub">Plan de Estudios 2023 · Seguimiento</span>
+        </div>
+      </div>
+      <nav class="tabs">
+        <button class="tab tab--active" data-tab="plan">Plan de Estudios</button>
+        <button class="tab" data-tab="historial">Historial de Notas</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page">
+
+    <!-- ============ TAB: PLAN ============ -->
+    <section class="tabpanel tabpanel--active" data-panel="plan">
+
+      <!-- Stats -->
+      <div class="stats">
+        <div class="stat stat--progress">
+          <div class="stat__top">
+            <span class="stat__label">Carrera completada</span>
+            <span class="stat__big" id="st-porcentaje">0%</span>
+          </div>
+          <div class="progressbar"><div class="progressbar__fill" id="st-progress"></div></div>
+          <span class="stat__hint"><span id="st-aprobadas">0</span> de <span id="st-total">0</span> materias aprobadas</span>
+        </div>
+
+        <div class="stat">
+          <span class="stat__num" id="st-promedio">—</span>
+          <span class="stat__label">Promedio general</span>
+        </div>
+        <div class="stat">
+          <span class="stat__num stat__num--cyan" id="st-disponibles">0</span>
+          <span class="stat__label">Disponibles para cursar</span>
+        </div>
+        <div class="stat">
+          <span class="stat__num stat__num--amber" id="st-cursando">0</span>
+          <span class="stat__label">Cursando</span>
+        </div>
+        <div class="stat">
+          <span class="stat__num stat__num--slate" id="st-restantes">0</span>
+          <span class="stat__label">Restantes</span>
+        </div>
+
+        <div class="stat stat--chart">
+          <canvas id="statusChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Legend -->
+      <div class="legend" id="legend">
+        <span class="legend__item"><i class="dot dot--aprobada"></i>Aprobada</span>
+        <span class="legend__item"><i class="dot dot--cursando"></i>Cursando</span>
+        <span class="legend__item"><i class="dot dot--pendiente"></i>Pendiente de final</span>
+        <span class="legend__item"><i class="dot dot--disponible"></i>Disponible</span>
+        <span class="legend__item"><i class="dot dot--bloqueada"></i>No disponible</span>
+        <span class="legend__hint">Hacé clic en una materia para cambiar su estado</span>
+      </div>
+
+      <!-- Malla curricular -->
+      <div id="malla" class="malla"></div>
+
+      <!-- Tabla detallada -->
+      <div class="panel">
+        <div class="panel__head">
+          <h2>Listado de materias</h2>
+          <div class="filters">
+            <input id="search-input" type="search" placeholder="Buscar materia o código…" />
+            <select id="status-filter">
+              <option value="all">Todos los estados</option>
+              <option value="aprobada">Aprobadas</option>
+              <option value="cursando">Cursando</option>
+              <option value="pendiente de final">Pendientes de final</option>
+              <option value="disponible">Disponibles</option>
+              <option value="bloqueada">No disponibles</option>
+            </select>
+            <button id="export-plan" class="btn btn--ghost">Exportar</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="grid-table">
+            <thead>
+              <tr>
+                <th>Código</th>
+                <th>Materia</th>
+                <th>Año</th>
+                <th>Trayecto</th>
+                <th>Estado</th>
+                <th>Correlativas</th>
+                <th>Nota</th>
+              </tr>
+            </thead>
+            <tbody id="subjects-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ============ TAB: HISTORIAL ============ -->
+    <section class="tabpanel" data-panel="historial">
+      <div class="panel__head panel__head--page">
+        <div>
+          <h2>Historial de Notas</h2>
+          <p class="muted">Tu registro por cuatrimestre. Editá las celdas y agregá materias a medida que llegan las notas. Se guarda solo en este navegador.</p>
+        </div>
+        <div class="filters">
+          <button id="add-semestre" class="btn btn--primary">+ Cuatrimestre</button>
+          <button id="export-historial" class="btn btn--ghost">Exportar</button>
+          <button id="reset-historial" class="btn btn--ghost">Restaurar del Excel</button>
+        </div>
+      </div>
+      <div id="historial-container" class="historial"></div>
+    </section>
+
+  </main>
+
+  <footer class="foot">
+    <span>Datos basados en el Plan de Estudios 2023 — UNLaM · DIIT</span>
+  </footer>
+
+</body>
+</html>

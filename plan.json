@@ -1,0 +1,569 @@
+﻿[
+    {
+        "codigo":  3621,
+        "materia":  "Matemática Discreta",
+        "trayecto":  "Ciencias Básicas",
+        "condicion":  "Aprobada",
+        "nota":  8,
+        "anio":  1,
+        "cuatri":  "1°C"
+    },
+    {
+        "codigo":  3622,
+        "materia":  "Análisis Matemático I",
+        "trayecto":  "Ciencias Básicas",
+        "condicion":  "Aprobada",
+        "nota":  5,
+        "anio":  1,
+        "cuatri":  "1°C"
+    },
+    {
+        "codigo":  3623,
+        "materia":  "Programación Inicial",
+        "trayecto":  "Programación",
+        "condicion":  "Aprobada",
+        "nota":  9,
+        "anio":  1,
+        "cuatri":  "1°C"
+    },
+    {
+        "codigo":  3624,
+        "materia":  "Introducción a los Sistemas de Información",
+        "trayecto":  "Desarrollo de Software",
+        "condicion":  "Aprobada",
+        "nota":  7,
+        "anio":  1,
+        "cuatri":  "1°C"
+    },
+    {
+        "codigo":  3625,
+        "materia":  "Sistemas de Numeración",
+        "trayecto":  "Infraestructura",
+        "condicion":  "Aprobada",
+        "nota":  8,
+        "anio":  1,
+        "cuatri":  "1°C"
+    },
+    {
+        "codigo":  3626,
+        "materia":  "Principios de Calidad de Software",
+        "trayecto":  "Calidad y Seguridad de la Información",
+        "condicion":  "Aprobada",
+        "nota":  8,
+        "anio":  1,
+        "cuatri":  "1°C"
+    },
+    {
+        "codigo":  3627,
+        "materia":  "Álgebra y Geometría Analítica I",
+        "trayecto":  "Ciencias Básicas",
+        "condicion":  "Aprobada",
+        "nota":  8,
+        "anio":  1,
+        "cuatri":  "2°C"
+    },
+    {
+        "codigo":  3628,
+        "materia":  "Física I",
+        "trayecto":  "Ciencias Básicas",
+        "condicion":  "Aprobada",
+        "nota":  6,
+        "anio":  1,
+        "cuatri":  "2°C"
+    },
+    {
+        "codigo":  3629,
+        "materia":  "Programación Estructurada Básica",
+        "trayecto":  "Programación",
+        "condicion":  "Aprobada",
+        "nota":  9,
+        "anio":  1,
+        "cuatri":  "2°C"
+    },
+    {
+        "codigo":  3630,
+        "materia":  "Introducción a la Gestión de Requisitos",
+        "trayecto":  "Desarrollo de Software",
+        "condicion":  "Aprobada",
+        "nota":  4,
+        "anio":  1,
+        "cuatri":  "2°C"
+    },
+    {
+        "codigo":  3631,
+        "materia":  "Fundamentos de Sistemas Embebidos",
+        "trayecto":  "Infraestructura",
+        "condicion":  "Aprobada",
+        "nota":  8,
+        "anio":  1,
+        "cuatri":  "2°C"
+    },
+    {
+        "codigo":  3632,
+        "materia":  "Introducción a Proyectos Informáticos",
+        "trayecto":  "Gestión y Complementarias",
+        "condicion":  "Aprobada",
+        "nota":  7,
+        "anio":  1,
+        "cuatri":  "2°C"
+    },
+    {
+        "codigo":  3633,
+        "materia":  "Análisis Matemático II",
+        "trayecto":  "Ciencias Básicas",
+        "condicion":  "Aprobada",
+        "nota":  5,
+        "anio":  2,
+        "cuatri":  "1°C"
+    },
+    {
+        "codigo":  3634,
+        "materia":  "Física II",
+        "trayecto":  "Ciencias Básicas",
+        "condicion":  "Aprobada",
+        "nota":  9,
+        "anio":  2,
+        "cuatri":  "1°C"
+    },
+    {
+        "codigo":  3635,
+        "materia":  "Tópicos de Programación",
+        "trayecto":  "Programación",
+        "condicion":  "Aprobada",
+        "nota":  8,
+        "anio":  2,
+        "cuatri":  "1°C"
+    },
+    {
+        "codigo":  3636,
+        "materia":  "Bases de Datos",
+        "trayecto":  "Programación",
+        "condicion":  "Aprobada",
+        "nota":  7,
+        "anio":  2,
+        "cuatri":  "1°C"
+    },
+    {
+        "codigo":  3637,
+        "materia":  "Análisis de Sistemas",
+        "trayecto":  "Desarrollo de Software",
+        "condicion":  "Aprobada",
+        "nota":  7,
+        "anio":  2,
+        "cuatri":  "1°C"
+    },
+    {
+        "codigo":  3638,
+        "materia":  "Arquitectura de Computadoras",
+        "trayecto":  "Infraestructura",
+        "condicion":  "Aprobada",
+        "nota":  6,
+        "anio":  2,
+        "cuatri":  "1°C"
+    },
+    {
+        "codigo":  3676,
+        "materia":  "Responsabilidad Social Universitaria",
+        "trayecto":  null,
+        "condicion":  "Aprobada",
+        "nota":  4,
+        "anio":  2,
+        "cuatri":  "1°C"
+    },
+    {
+        "codigo":  3639,
+        "materia":  "Análisis Matemático III",
+        "trayecto":  "Ciencias Básicas",
+        "condicion":  "Aprobada",
+        "nota":  8,
+        "anio":  2,
+        "cuatri":  "2°C"
+    },
+    {
+        "codigo":  3640,
+        "materia":  "Algoritmos y Estructuras de Datos",
+        "trayecto":  "Programación",
+        "condicion":  "Aprobada",
+        "nota":  8,
+        "anio":  2,
+        "cuatri":  "2°C"
+    },
+    {
+        "codigo":  3641,
+        "materia":  "Bases de Datos Aplicada",
+        "trayecto":  "Programación",
+        "condicion":  "Aprobada",
+        "nota":  8,
+        "anio":  2,
+        "cuatri":  "2°C"
+    },
+    {
+        "codigo":  3642,
+        "materia":  "Principios de Diseño de Sistemas",
+        "trayecto":  "Desarrollo de Software",
+        "condicion":  "Aprobada",
+        "nota":  7,
+        "anio":  2,
+        "cuatri":  "2°C"
+    },
+    {
+        "codigo":  3643,
+        "materia":  "Redes de Computadoras",
+        "trayecto":  "Infraestructura",
+        "condicion":  "Aprobada",
+        "nota":  9,
+        "anio":  2,
+        "cuatri":  "2°C"
+    },
+    {
+        "codigo":  3644,
+        "materia":  "Gestión de las Organizaciones",
+        "trayecto":  "Gestión y Complementarias",
+        "condicion":  "Aprobada",
+        "nota":  9,
+        "anio":  2,
+        "cuatri":  "2°C"
+    },
+    {
+        "codigo":  3680,
+        "materia":  "Taller de Integración",
+        "trayecto":  null,
+        "condicion":  "Aprobada",
+        "nota":  0,
+        "anio":  2,
+        "cuatri":  "2°C"
+    },
+    {
+        "codigo":  3645,
+        "materia":  "Álgebra y Geometría Analítica II",
+        "trayecto":  "Ciencias Básicas",
+        "condicion":  "Aprobada",
+        "nota":  7,
+        "anio":  3,
+        "cuatri":  "1°C"
+    },
+    {
+        "codigo":  3646,
+        "materia":  "Paradigmas de Programación",
+        "trayecto":  "Programación",
+        "condicion":  "Aprobada",
+        "nota":  9,
+        "anio":  3,
+        "cuatri":  "1°C"
+    },
+    {
+        "codigo":  3647,
+        "materia":  "Requisitos Avanzados",
+        "trayecto":  "Desarrollo de Software",
+        "condicion":  "No aprobada",
+        "nota":  0,
+        "anio":  3,
+        "cuatri":  "1°C"
+    },
+    {
+        "codigo":  3648,
+        "materia":  "Diseño de Software",
+        "trayecto":  "Desarrollo de Software",
+        "condicion":  "Cursada",
+        "nota":  0,
+        "anio":  3,
+        "cuatri":  "1°C"
+    },
+    {
+        "codigo":  3649,
+        "materia":  "Sistemas Operativos",
+        "trayecto":  "Infraestructura",
+        "condicion":  "Aprobada",
+        "nota":  7,
+        "anio":  3,
+        "cuatri":  "1°C"
+    },
+    {
+        "codigo":  3650,
+        "materia":  "Seguridad de la Información",
+        "trayecto":  "Calidad y Seguridad de la Información",
+        "condicion":  "Aprobada",
+        "nota":  6,
+        "anio":  3,
+        "cuatri":  "1°C"
+    },
+    {
+        "codigo":  3675,
+        "materia":  "Práctica Profesional Supervisada",
+        "trayecto":  null,
+        "condicion":  "Aprobada",
+        "nota":  7,
+        "anio":  3,
+        "cuatri":  "1°C"
+    },
+    {
+        "codigo":  3651,
+        "materia":  "Probabilidad y Estadística",
+        "trayecto":  "Ciencias Básicas",
+        "condicion":  "Aprobada",
+        "nota":  7,
+        "anio":  3,
+        "cuatri":  "2°C"
+    },
+    {
+        "codigo":  3652,
+        "materia":  "Programación Avanzada",
+        "trayecto":  "Programación",
+        "condicion":  "No aprobada",
+        "nota":  0,
+        "anio":  3,
+        "cuatri":  "2°C"
+    },
+    {
+        "codigo":  3653,
+        "materia":  "Arquitecturas de Sistemas Software",
+        "trayecto":  "Desarrollo de Software",
+        "condicion":  "No aprobada",
+        "nota":  0,
+        "anio":  3,
+        "cuatri":  "2°C"
+    },
+    {
+        "codigo":  3654,
+        "materia":  "Virtualización de Hardware",
+        "trayecto":  "Infraestructura",
+        "condicion":  "No aprobada",
+        "nota":  0,
+        "anio":  3,
+        "cuatri":  "2°C"
+    },
+    {
+        "codigo":  3655,
+        "materia":  "Auditoría y Legislación",
+        "trayecto":  "Calidad y Seguridad de la Información",
+        "condicion":  "No aprobada",
+        "nota":  0,
+        "anio":  3,
+        "cuatri":  "2°C"
+    },
+    {
+        "codigo":  3656,
+        "materia":  "Estadística Aplicada",
+        "trayecto":  "Ciencias Básicas",
+        "condicion":  "Aprobada",
+        "nota":  4,
+        "anio":  4,
+        "cuatri":  "1°C"
+    },
+    {
+        "codigo":  3657,
+        "materia":  "Autómatas y Gramática",
+        "trayecto":  "Programación",
+        "condicion":  "No aprobada",
+        "nota":  0,
+        "anio":  4,
+        "cuatri":  "1°C"
+    },
+    {
+        "codigo":  3658,
+        "materia":  "Programación Concurrente",
+        "trayecto":  "Infraestructura",
+        "condicion":  "No aprobada",
+        "nota":  0,
+        "anio":  4,
+        "cuatri":  "1°C"
+    },
+    {
+        "codigo":  3659,
+        "materia":  "Gestión Aplicada al Desarrollo de Software I",
+        "trayecto":  "Desarrollo de Software",
+        "condicion":  "No aprobada",
+        "nota":  0,
+        "anio":  4,
+        "cuatri":  "1°C"
+    },
+    {
+        "codigo":  3660,
+        "materia":  "Sistemas Operativos Avanzados",
+        "trayecto":  "Infraestructura",
+        "condicion":  "No aprobada",
+        "nota":  0,
+        "anio":  4,
+        "cuatri":  "1°C"
+    },
+    {
+        "codigo":  3661,
+        "materia":  "Gestión de Proyectos",
+        "trayecto":  "Gestión y Complementarias",
+        "condicion":  "No aprobada",
+        "nota":  0,
+        "anio":  4,
+        "cuatri":  "1°C"
+    },
+    {
+        "codigo":  3662,
+        "materia":  "Matemática Aplicada",
+        "trayecto":  "Ciencias Básicas",
+        "condicion":  "Aprobada",
+        "nota":  10,
+        "anio":  4,
+        "cuatri":  "2°C"
+    },
+    {
+        "codigo":  3663,
+        "materia":  "Lenguajes y Compiladores",
+        "trayecto":  "Programación",
+        "condicion":  "No aprobada",
+        "nota":  0,
+        "anio":  4,
+        "cuatri":  "2°C"
+    },
+    {
+        "codigo":  3664,
+        "materia":  "Inteligencia Artificial",
+        "trayecto":  "Desarrollo de Software",
+        "condicion":  "No aprobada",
+        "nota":  0,
+        "anio":  4,
+        "cuatri":  "2°C"
+    },
+    {
+        "codigo":  3665,
+        "materia":  "Gestión Aplicada al Desarrollo de Software II",
+        "trayecto":  "Desarrollo de Software",
+        "condicion":  "No aprobada",
+        "nota":  0,
+        "anio":  4,
+        "cuatri":  "2°C"
+    },
+    {
+        "codigo":  3666,
+        "materia":  "Seguridad Apliacada y Forensia",
+        "trayecto":  "Calidad y Seguridad de la Información",
+        "condicion":  "No aprobada",
+        "nota":  0,
+        "anio":  4,
+        "cuatri":  "2°C"
+    },
+    {
+        "codigo":  3667,
+        "materia":  "Gestión de la Calidad en Procesos de Sistemas",
+        "trayecto":  "Calidad y Seguridad de la Información",
+        "condicion":  "No aprobada",
+        "nota":  0,
+        "anio":  4,
+        "cuatri":  "2°C"
+    },
+    {
+        "codigo":  3668,
+        "materia":  "Inteligencia Artificial Aplicada",
+        "trayecto":  "Desarrollo de Software",
+        "condicion":  "No aprobada",
+        "nota":  0,
+        "anio":  5,
+        "cuatri":  "1°C"
+    },
+    {
+        "codigo":  3669,
+        "materia":  "Innovación y Emprendedorismo",
+        "trayecto":  "Gestión y Complementarias",
+        "condicion":  "No aprobada",
+        "nota":  0,
+        "anio":  5,
+        "cuatri":  "1°C"
+    },
+    {
+        "codigo":  3670,
+        "materia":  "Ciencia de Datos",
+        "trayecto":  "Desarrollo de Software",
+        "condicion":  "No aprobada",
+        "nota":  0,
+        "anio":  5,
+        "cuatri":  "1°C"
+    },
+    {
+        "codigo":  3671,
+        "materia":  "Proyecto Final de Carrera",
+        "trayecto":  "Desarrollo de Software",
+        "condicion":  "No aprobada",
+        "nota":  0,
+        "anio":  5,
+        "cuatri":  "1°C"
+    },
+    {
+        "codigo":  3672,
+        "materia":  "Electiva I",
+        "trayecto":  "Desarrollo de Software",
+        "condicion":  "No aprobada",
+        "nota":  0,
+        "anio":  5,
+        "cuatri":  "1°C"
+    },
+    {
+        "codigo":  3673,
+        "materia":  "Electiva II",
+        "trayecto":  "Desarrollo de Software",
+        "condicion":  "No aprobada",
+        "nota":  0,
+        "anio":  5,
+        "cuatri":  "2°C"
+    },
+    {
+        "codigo":  3674,
+        "materia":  "Electiva III",
+        "trayecto":  "Desarrollo de Software",
+        "condicion":  "No aprobada",
+        "nota":  0,
+        "anio":  5,
+        "cuatri":  "2°C"
+    },
+    {
+        "codigo":  911,
+        "materia":  "Computación I",
+        "trayecto":  null,
+        "condicion":  "Aprobada",
+        "nota":  7,
+        "anio":  0,
+        "cuatri":  "Transversal"
+    },
+    {
+        "codigo":  912,
+        "materia":  "Computación II",
+        "trayecto":  null,
+        "condicion":  "Aprobada",
+        "nota":  9,
+        "anio":  0,
+        "cuatri":  "Transversal"
+    },
+    {
+        "codigo":  901,
+        "materia":  "Inglés I",
+        "trayecto":  null,
+        "condicion":  "Aprobada",
+        "nota":  10,
+        "anio":  0,
+        "cuatri":  "Transversal"
+    },
+    {
+        "codigo":  902,
+        "materia":  "Inglés II",
+        "trayecto":  null,
+        "condicion":  "No aprobada",
+        "nota":  0,
+        "anio":  0,
+        "cuatri":  "Transversal"
+    },
+    {
+        "codigo":  903,
+        "materia":  "Inglés III",
+        "trayecto":  null,
+        "condicion":  "No aprobada",
+        "nota":  0,
+        "anio":  0,
+        "cuatri":  "Transversal"
+    },
+    {
+        "codigo":  904,
+        "materia":  "Inglés IV",
+        "trayecto":  null,
+        "condicion":  "No aprobada",
+        "nota":  0,
+        "anio":  0,
+        "cuatri":  "Transversal"
+    }
+]

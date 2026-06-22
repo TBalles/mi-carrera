@@ -1,0 +1,452 @@
+﻿[
+    {
+        "semestre":  "1°C 2022",
+        "materias":  [
+                         {
+                             "materia":  "Analisis Matematico 1",
+                             "primerParcial":  "6",
+                             "segundoParcial":  "4",
+                             "recuperatorio":  "",
+                             "notaPromocion":  "5",
+                             "segundoIntento":  "",
+                             "tercerIntento":  ""
+                         },
+                         {
+                             "materia":  "Elementos de Programacion",
+                             "primerParcial":  "9",
+                             "segundoParcial":  "9",
+                             "recuperatorio":  "",
+                             "notaPromocion":  "9",
+                             "segundoIntento":  "",
+                             "tercerIntento":  ""
+                         }
+                     ]
+    },
+    {
+        "semestre":  "2°C 2022",
+        "materias":  [
+                         {
+                             "materia":  "Dibujo Tecnico",
+                             "primerParcial":  "9",
+                             "segundoParcial":  "9",
+                             "recuperatorio":  "",
+                             "notaPromocion":  "9",
+                             "segundoIntento":  "",
+                             "tercerIntento":  ""
+                         },
+                         {
+                             "materia":  "Matematica Discreta",
+                             "primerParcial":  "8",
+                             "segundoParcial":  "8",
+                             "recuperatorio":  "",
+                             "notaPromocion":  "8",
+                             "segundoIntento":  "",
+                             "tercerIntento":  ""
+                         },
+                         {
+                             "materia":  "Fundamentos de TIC\u0027s",
+                             "primerParcial":  "8",
+                             "segundoParcial":  "6",
+                             "recuperatorio":  "8",
+                             "notaPromocion":  "8",
+                             "segundoIntento":  "",
+                             "tercerIntento":  ""
+                         },
+                         {
+                             "materia":  "Algebra y Geometria analitica 1",
+                             "primerParcial":  "7",
+                             "segundoParcial":  "9",
+                             "recuperatorio":  "",
+                             "notaPromocion":  "8",
+                             "segundoIntento":  "",
+                             "tercerIntento":  ""
+                         }
+                     ]
+    },
+    {
+        "semestre":  "1°C 2023",
+        "materias":  [
+                         {
+                             "materia":  "Introduccion a los Proyectos Informaticos",
+                             "primerParcial":  "4",
+                             "segundoParcial":  "7",
+                             "recuperatorio":  "7",
+                             "notaPromocion":  "7",
+                             "segundoIntento":  "",
+                             "tercerIntento":  ""
+                         },
+                         {
+                             "materia":  "Arquitectura de Computadoras",
+                             "primerParcial":  "4",
+                             "segundoParcial":  "6",
+                             "recuperatorio":  "",
+                             "notaPromocion":  "6",
+                             "segundoIntento":  "",
+                             "tercerIntento":  ""
+                         },
+                         {
+                             "materia":  "Fisica 1",
+                             "primerParcial":  "4",
+                             "segundoParcial":  "4",
+                             "recuperatorio":  "",
+                             "notaPromocion":  "6",
+                             "segundoIntento":  "",
+                             "tercerIntento":  ""
+                         },
+                         {
+                             "materia":  "Analisis 3",
+                             "primerParcial":  "TP Aprobado",
+                             "segundoParcial":  "3",
+                             "recuperatorio":  "10",
+                             "notaPromocion":  "8",
+                             "segundoIntento":  "",
+                             "tercerIntento":  ""
+                         },
+                         {
+                             "materia":  "Topicos de programacion",
+                             "primerParcial":  "",
+                             "segundoParcial":  "2",
+                             "recuperatorio":  "2",
+                             "notaPromocion":  "2",
+                             "segundoIntento":  "",
+                             "tercerIntento":  ""
+                         },
+                         {
+                             "materia":  "Computacion 1",
+                             "primerParcial":  "10",
+                             "segundoParcial":  "9",
+                             "recuperatorio":  "",
+                             "notaPromocion":  "7",
+                             "segundoIntento":  "",
+                             "tercerIntento":  ""
+                         }
+                     ]
+    },
+    {
+        "semestre":  "2°C 2023",
+        "materias":  [
+                         {
+                             "materia":  "Topicos de Programacion",
+                             "primerParcial":  "",
+                             "segundoParcial":  "8",
+                             "recuperatorio":  "",
+                             "notaPromocion":  "8",
+                             "segundoIntento":  "",
+                             "tercerIntento":  ""
+                         },
+                         {
+                             "materia":  "Principios de Calidad de Software",
+                             "primerParcial":  "8",
+                             "segundoParcial":  "7",
+                             "recuperatorio":  "",
+                             "notaPromocion":  "8",
+                             "segundoIntento":  "",
+                             "tercerIntento":  ""
+                         },
+                         {
+                             "materia":  "Algebra y Geometria analitica 2",
+                             "primerParcial":  "7",
+                             "segundoParcial":  "7",
+                             "recuperatorio":  "",
+                             "notaPromocion":  "7",
+                             "segundoIntento":  "",
+                             "tercerIntento":  ""
+                         },
+                         {
+                             "materia":  "Introduccion a los Sistemas Informaticos",
+                             "primerParcial":  "6",
+                             "segundoParcial":  "8",
+                             "recuperatorio":  "",
+                             "notaPromocion":  "7",
+                             "segundoIntento":  "",
+                             "tercerIntento":  ""
+                         },
+                         {
+                             "materia":  "Base de Datos",
+                             "primerParcial":  "7",
+                             "segundoParcial":  "2",
+                             "recuperatorio":  "7",
+                             "notaPromocion":  "7",
+                             "segundoIntento":  "",
+                             "tercerIntento":  ""
+                         }
+                     ]
+    },
+    {
+        "semestre":  "1°C 2024",
+        "materias":  [
+                         {
+                             "materia":  "Algoritmos y Estructuras de Datos",
+                             "primerParcial":  "5",
+                             "segundoParcial":  "5",
+                             "recuperatorio":  "",
+                             "notaPromocion":  "2",
+                             "segundoIntento":  "2",
+                             "tercerIntento":  ""
+                         },
+                         {
+                             "materia":  "Probabilidad y Estadistica",
+                             "primerParcial":  "6",
+                             "segundoParcial":  "AUSENTE",
+                             "recuperatorio":  "4",
+                             "notaPromocion":  "7",
+                             "segundoIntento":  "",
+                             "tercerIntento":  ""
+                         },
+                         {
+                             "materia":  "Fisica 2",
+                             "primerParcial":  "4",
+                             "segundoParcial":  "5",
+                             "recuperatorio":  "",
+                             "notaPromocion":  "9",
+                             "segundoIntento":  "",
+                             "tercerIntento":  ""
+                         },
+                         {
+                             "materia":  "Introduccion a la Gestion de Requisitos",
+                             "primerParcial":  "10",
+                             "segundoParcial":  "2",
+                             "recuperatorio":  "5",
+                             "notaPromocion":  "4",
+                             "segundoIntento":  "",
+                             "tercerIntento":  ""
+                         },
+                         {
+                             "materia":  "Base de Datos Aplicada",
+                             "primerParcial":  "7",
+                             "segundoParcial":  "9",
+                             "recuperatorio":  "",
+                             "notaPromocion":  "8",
+                             "segundoIntento":  "",
+                             "tercerIntento":  ""
+                         },
+                         {
+                             "materia":  "Computacion 2",
+                             "primerParcial":  "",
+                             "segundoParcial":  "9",
+                             "recuperatorio":  "",
+                             "notaPromocion":  "9",
+                             "segundoIntento":  "",
+                             "tercerIntento":  ""
+                         }
+                     ]
+    },
+    {
+        "semestre":  "2°C 2024",
+        "materias":  [
+                         {
+                             "materia":  "Análisis de Sistemas",
+                             "primerParcial":  "",
+                             "segundoParcial":  "2",
+                             "recuperatorio":  "7",
+                             "notaPromocion":  "7",
+                             "segundoIntento":  "",
+                             "tercerIntento":  ""
+                         },
+                         {
+                             "materia":  "Estadística Aplicada",
+                             "primerParcial":  "6",
+                             "segundoParcial":  "6",
+                             "recuperatorio":  "",
+                             "notaPromocion":  "4",
+                             "segundoIntento":  "",
+                             "tercerIntento":  ""
+                         },
+                         {
+                             "materia":  "Sistemas Operativos",
+                             "primerParcial":  "2",
+                             "segundoParcial":  "2",
+                             "recuperatorio":  "",
+                             "notaPromocion":  "2",
+                             "segundoIntento":  "",
+                             "tercerIntento":  ""
+                         },
+                         {
+                             "materia":  "Gestión de las Organizaciones",
+                             "primerParcial":  "7",
+                             "segundoParcial":  "10",
+                             "recuperatorio":  "",
+                             "notaPromocion":  "9",
+                             "segundoIntento":  "",
+                             "tercerIntento":  ""
+                         },
+                         {
+                             "materia":  "Redes de Computadoras",
+                             "primerParcial":  "8",
+                             "segundoParcial":  "9",
+                             "recuperatorio":  "",
+                             "notaPromocion":  "9",
+                             "segundoIntento":  "",
+                             "tercerIntento":  ""
+                         }
+                     ]
+    },
+    {
+        "semestre":  "1°C 2025",
+        "materias":  [
+                         {
+                             "materia":  "Principios de Diseño de Sistemas",
+                             "primerParcial":  "7",
+                             "segundoParcial":  "7",
+                             "recuperatorio":  "",
+                             "notaPromocion":  "7",
+                             "segundoIntento":  "",
+                             "tercerIntento":  ""
+                         },
+                         {
+                             "materia":  "Matematica Aplicada",
+                             "primerParcial":  "10",
+                             "segundoParcial":  "9",
+                             "recuperatorio":  "",
+                             "notaPromocion":  "9",
+                             "segundoIntento":  "",
+                             "tercerIntento":  ""
+                         },
+                         {
+                             "materia":  "Sistemas Operativos",
+                             "primerParcial":  "6",
+                             "segundoParcial":  "2",
+                             "recuperatorio":  "2",
+                             "notaPromocion":  "2",
+                             "segundoIntento":  "",
+                             "tercerIntento":  ""
+                         },
+                         {
+                             "materia":  "Algoritmos y Estructuras de Datos",
+                             "primerParcial":  "8",
+                             "segundoParcial":  "8",
+                             "recuperatorio":  "",
+                             "notaPromocion":  "8",
+                             "segundoIntento":  "",
+                             "tercerIntento":  ""
+                         }
+                     ]
+    },
+    {
+        "semestre":  "2°C 2025",
+        "materias":  [
+                         {
+                             "materia":  "Diseño de Software",
+                             "primerParcial":  "",
+                             "segundoParcial":  "4",
+                             "recuperatorio":  "",
+                             "notaPromocion":  "2",
+                             "segundoIntento":  "",
+                             "tercerIntento":  ""
+                         },
+                         {
+                             "materia":  "Paradigmas de Programacion",
+                             "primerParcial":  "9",
+                             "segundoParcial":  "8",
+                             "recuperatorio":  "",
+                             "notaPromocion":  "9",
+                             "segundoIntento":  "",
+                             "tercerIntento":  ""
+                         },
+                         {
+                             "materia":  "Seguridad de la Informacion",
+                             "primerParcial":  "9",
+                             "segundoParcial":  "5",
+                             "recuperatorio":  "",
+                             "notaPromocion":  "6",
+                             "segundoIntento":  "",
+                             "tercerIntento":  ""
+                         },
+                         {
+                             "materia":  "Sistemas Operativos",
+                             "primerParcial":  "6",
+                             "segundoParcial":  "7",
+                             "recuperatorio":  "",
+                             "notaPromocion":  "7",
+                             "segundoIntento":  "",
+                             "tercerIntento":  ""
+                         },
+                         {
+                             "materia":  "Responsabilidad Social Universitaria",
+                             "primerParcial":  "5",
+                             "segundoParcial":  "8",
+                             "recuperatorio":  "",
+                             "notaPromocion":  "4",
+                             "segundoIntento":  "",
+                             "tercerIntento":  ""
+                         },
+                         {
+                             "materia":  "Practica Profesional Supervisada",
+                             "primerParcial":  "",
+                             "segundoParcial":  "",
+                             "recuperatorio":  "",
+                             "notaPromocion":  "7",
+                             "segundoIntento":  "",
+                             "tercerIntento":  ""
+                         },
+                         {
+                             "materia":  "Ingles 1",
+                             "primerParcial":  "10",
+                             "segundoParcial":  "9",
+                             "recuperatorio":  "",
+                             "notaPromocion":  "10",
+                             "segundoIntento":  "",
+                             "tercerIntento":  ""
+                         }
+                     ]
+    },
+    {
+        "semestre":  "1°C 2026",
+        "materias":  [
+                         {
+                             "materia":  "Requisitos Avanzados",
+                             "primerParcial":  "",
+                             "segundoParcial":  "",
+                             "recuperatorio":  "",
+                             "notaPromocion":  "",
+                             "segundoIntento":  "",
+                             "tercerIntento":  ""
+                         },
+                         {
+                             "materia":  "Virtualizacion de Hardware",
+                             "primerParcial":  "",
+                             "segundoParcial":  "",
+                             "recuperatorio":  "",
+                             "notaPromocion":  "",
+                             "segundoIntento":  "",
+                             "tercerIntento":  ""
+                         },
+                         {
+                             "materia":  "Gestion de Proyectos",
+                             "primerParcial":  "",
+                             "segundoParcial":  "",
+                             "recuperatorio":  "",
+                             "notaPromocion":  "",
+                             "segundoIntento":  "",
+                             "tercerIntento":  ""
+                         },
+                         {
+                             "materia":  "Programacion Avanzada",
+                             "primerParcial":  "",
+                             "segundoParcial":  "",
+                             "recuperatorio":  "",
+                             "notaPromocion":  "",
+                             "segundoIntento":  "",
+                             "tercerIntento":  ""
+                         },
+                         {
+                             "materia":  "Automatas y Gramaticas",
+                             "primerParcial":  "",
+                             "segundoParcial":  "",
+                             "recuperatorio":  "",
+                             "notaPromocion":  "",
+                             "segundoIntento":  "",
+                             "tercerIntento":  ""
+                         },
+                         {
+                             "materia":  "Ingles 2",
+                             "primerParcial":  "",
+                             "segundoParcial":  "",
+                             "recuperatorio":  "",
+                             "notaPromocion":  "",
+                             "segundoIntento":  "",
+                             "tercerIntento":  ""
+                         }
+                     ]
+    }
+]
