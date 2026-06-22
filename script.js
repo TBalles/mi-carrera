@@ -1,25 +1,175 @@
 'use strict';
 
 /* ════════════════════════════════════════════════════════
-   Estado global
+   Claves de almacenamiento
+   ════════════════════════════════════════════════════════ */
+const STORE_ESTADOS  = 'plan.customEstados.v2';
+const STORE_NOTAS    = 'plan.customNotas.v1';
+const STORE_HISTORIAL = 'plan.historial.v2';
+const STORE_THEME    = 'plan.theme.v1';
+const STORE_USERS    = 'app.users.v1';
+const STORE_SESSION  = 'app.session.v1';
+const SESSION_DAYS   = 30;
+
+// Las claves de datos se prefijan con el usuario activo
+let currentUser = null;
+function uk(key) { return `${key}.${currentUser}`; }
+
+/* ════════════════════════════════════════════════════════
+   Estado global del plan
    ════════════════════════════════════════════════════════ */
 let planData = [];
 let correlativas = {};
-let customEstados = {};         // override por código -> estado
-let customNotas = {};           // override por código -> nota
+let customEstados = {};
+let customNotas = {};
 let statusChart = null;
 
-const STORE_ESTADOS = 'plan.customEstados.v2';
-const STORE_NOTAS = 'plan.customNotas.v1';
-const STORE_HISTORIAL = 'plan.historial.v2';
-const STORE_THEME = 'plan.theme.v1';
-
-// Estados que el usuario puede asignar (en orden de ciclo)
-const CICLO = ['no cursada', 'cursando', 'pendiente de final', 'aprobada'];
-
-// Una correlativa se considera CUMPLIDA si está aprobada o pendiente de final.
-// (Estar cursándola NO habilita las que dependen de ella.)
+const CICLO    = ['no cursada', 'cursando', 'pendiente de final', 'aprobada'];
 const HABILITA = new Set(['aprobada', 'pendiente de final']);
+
+/* ════════════════════════════════════════════════════════
+   Autenticación
+   ════════════════════════════════════════════════════════ */
+async function sha256(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+function getUsers() {
+  try { return JSON.parse(localStorage.getItem(STORE_USERS)) || {}; }
+  catch { return {}; }
+}
+function saveUsers(u) { localStorage.setItem(STORE_USERS, JSON.stringify(u)); }
+
+function getSession() {
+  try {
+    const s = JSON.parse(localStorage.getItem(STORE_SESSION));
+    if (!s || Date.now() > s.expires) { localStorage.removeItem(STORE_SESSION); return null; }
+    return s;
+  } catch { return null; }
+}
+function saveSession(username) {
+  localStorage.setItem(STORE_SESSION, JSON.stringify({
+    username, expires: Date.now() + SESSION_DAYS * 86_400_000,
+  }));
+}
+
+async function tryLogin(username, password) {
+  const users = getUsers();
+  const hash  = await sha256(password);
+  if (users[username] !== hash) return false;
+  currentUser = username;
+  saveSession(username);
+  return true;
+}
+
+async function tryRegister(username, password) {
+  const users = getUsers();
+  if (users[username]) return false;   // ya existe
+  const hash = await sha256(password);
+  users[username] = hash;
+  saveUsers(users);
+  currentUser = username;
+  saveSession(username);
+  migrateOldData(username);
+  return true;
+}
+
+function migrateOldData(username) {
+  // Mueve datos previos (sin prefijo de usuario) al nuevo usuario — solo si no hay datos propios aún
+  [STORE_ESTADOS, STORE_NOTAS, STORE_HISTORIAL].forEach(key => {
+    const old = localStorage.getItem(key);
+    if (old && !localStorage.getItem(`${key}.${username}`)) {
+      localStorage.setItem(`${key}.${username}`, old);
+    }
+  });
+}
+
+function logout() {
+  localStorage.removeItem(STORE_SESSION);
+  currentUser = null;
+  // Reset plan state
+  planData = []; correlativas = {}; customEstados = {}; customNotas = {};
+  if (statusChart) { statusChart.destroy(); statusChart = null; }
+  showLoginScreen();
+}
+
+/* ════════════════════════════════════════════════════════
+   Pantalla de login
+   ════════════════════════════════════════════════════════ */
+let loginMode = 'login'; // 'login' | 'register'
+
+function showLoginScreen() {
+  document.getElementById('login-screen').classList.add('visible');
+  document.getElementById('app').classList.remove('visible');
+  document.getElementById('login-user').value = '';
+  document.getElementById('login-pass').value = '';
+  setLoginError('');
+  setLoginMode('login');
+  setTimeout(() => document.getElementById('login-user').focus(), 80);
+}
+
+function hideLoginScreen() {
+  document.getElementById('login-screen').classList.remove('visible');
+  document.getElementById('app').classList.add('visible');
+  document.getElementById('user-chip').textContent = currentUser;
+}
+
+function setLoginMode(mode) {
+  loginMode = mode;
+  document.getElementById('login-title').textContent   = mode === 'login' ? 'Iniciar sesión' : 'Crear cuenta';
+  document.getElementById('login-submit').textContent  = mode === 'login' ? 'Entrar' : 'Registrarse';
+  document.getElementById('switch-text').textContent   = mode === 'login' ? '¿No tenés cuenta?' : '¿Ya tenés cuenta?';
+  document.getElementById('switch-btn').textContent    = mode === 'login' ? 'Registrarse' : 'Iniciar sesión';
+  setLoginError('');
+}
+
+function setLoginError(msg) {
+  const el = document.getElementById('login-error');
+  el.textContent = msg;
+  el.style.display = msg ? 'block' : 'none';
+}
+
+function initLoginScreen() {
+  document.getElementById('switch-btn').addEventListener('click', () =>
+    setLoginMode(loginMode === 'login' ? 'register' : 'login')
+  );
+
+  document.getElementById('login-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const username = document.getElementById('login-user').value.trim();
+    const password = document.getElementById('login-pass').value;
+    const btn = document.getElementById('login-submit');
+
+    if (!username) { setLoginError('Ingresá un nombre de usuario.'); return; }
+    if (password.length < 4) { setLoginError('La contraseña debe tener al menos 4 caracteres.'); return; }
+
+    btn.disabled = true;
+    btn.textContent = '…';
+
+    if (loginMode === 'login') {
+      const ok = await tryLogin(username, password);
+      if (!ok) {
+        setLoginError('Usuario o contraseña incorrectos.');
+        btn.disabled = false;
+        btn.textContent = 'Entrar';
+      } else {
+        await initApp();
+        hideLoginScreen();
+      }
+    } else {
+      const ok = await tryRegister(username, password);
+      if (!ok) {
+        setLoginError('Ese nombre de usuario ya existe.');
+        btn.disabled = false;
+        btn.textContent = 'Registrarse';
+      } else {
+        await initApp();
+        hideLoginScreen();
+      }
+    }
+  });
+}
 
 /* ════════════════════════════════════════════════════════
    Tema (oscuro / claro)
@@ -38,13 +188,16 @@ function initTheme() {
     localStorage.setItem(STORE_THEME, now);
     applyTheme(now);
   });
+  document.getElementById('logout-btn').addEventListener('click', () => {
+    if (confirm('¿Cerrar sesión?')) logout();
+  });
 }
 
 /* ════════════════════════════════════════════════════════
    Tabs
    ════════════════════════════════════════════════════════ */
 function initTabs() {
-  const tabs = document.querySelectorAll('.tab');
+  const tabs   = document.querySelectorAll('.tab');
   const panels = document.querySelectorAll('.tabpanel');
   tabs.forEach(t => t.addEventListener('click', () => {
     const target = t.dataset.tab;
@@ -57,57 +210,47 @@ function initTabs() {
    Carga y cálculo del plan
    ════════════════════════════════════════════════════════ */
 function loadStore(key) {
-  try { return JSON.parse(localStorage.getItem(key)) || {}; }
+  try { return JSON.parse(localStorage.getItem(uk(key))) || {}; }
   catch { return {}; }
 }
 function loadCustomEstados() { customEstados = loadStore(STORE_ESTADOS); }
-function saveCustomEstados() { localStorage.setItem(STORE_ESTADOS, JSON.stringify(customEstados)); }
-function loadCustomNotas() { customNotas = loadStore(STORE_NOTAS); }
-function saveCustomNotas() { localStorage.setItem(STORE_NOTAS, JSON.stringify(customNotas)); }
+function saveCustomEstados() { localStorage.setItem(uk(STORE_ESTADOS), JSON.stringify(customEstados)); }
+function loadCustomNotas()   { customNotas   = loadStore(STORE_NOTAS); }
+function saveCustomNotas()   { localStorage.setItem(uk(STORE_NOTAS), JSON.stringify(customNotas)); }
 
 function condicionToEstado(condicion) {
   if (condicion === 'Aprobada') return 'aprobada';
-  if (condicion === 'Cursada') return 'cursando';
+  if (condicion === 'Cursada')  return 'cursando';
   return 'no cursada';
 }
-
 function baseEstado(item) {
-  if (customEstados[item.codigo]) return customEstados[item.codigo];
-  return condicionToEstado(item.condicion);
+  return customEstados[item.codigo] || condicionToEstado(item.condicion);
 }
-
 function baseNota(item) {
-  if (item.codigo in customNotas) return customNotas[item.codigo];
-  return item.nota || 0;
+  return (item.codigo in customNotas) ? customNotas[item.codigo] : (item.nota || 0);
 }
 
-// Recalcula disponibilidad: una materia "no cursada" está Disponible si
-// TODAS sus correlativas están aprobadas o pendientes de final.
 function recalcular() {
   const estadoPorCodigo = {};
   planData.forEach(i => { estadoPorCodigo[i.codigo] = i.estado; });
-
   planData.forEach(item => {
-    const prereqs = correlativas[item.codigo] || [];
+    const prereqs   = correlativas[item.codigo] || [];
     const habilitada = prereqs.every(c => HABILITA.has(estadoPorCodigo[c]));
-    item.habilitada = habilitada;            // ¿cumple correlativas?
-    if (item.estado !== 'no cursada') {
-      item.disponibilidad = 'No disponible'; // ya en curso/pendiente/aprobada => no "para cursar"
-    } else {
-      item.disponibilidad = habilitada ? 'Disponible' : 'No disponible';
-    }
+    item.habilitada = habilitada;
+    item.disponibilidad = (item.estado !== 'no cursada')
+      ? 'No disponible'
+      : (habilitada ? 'Disponible' : 'No disponible');
   });
 }
 
-// Estado visual para colorear (5 categorías)
 function displayStatus(item) {
-  if (item.estado === 'aprobada') return 'aprobada';
-  if (item.estado === 'cursando') return 'cursando';
+  if (item.estado === 'aprobada')          return 'aprobada';
+  if (item.estado === 'cursando')          return 'cursando';
   if (item.estado === 'pendiente de final') return 'pendiente';
   return item.disponibilidad === 'Disponible' ? 'disponible' : 'bloqueada';
 }
 
-// Fetch de JSON robusto: elimina un BOM inicial si lo hubiera antes de parsear.
+// Fetch robusto: descarta BOM si lo hubiera
 async function fetchJSON(url) {
   const text = await fetch(url).then(r => r.text());
   return JSON.parse(text.replace(/^﻿/, ''));
@@ -131,7 +274,6 @@ function setEstado(codigo, nuevo) {
   const item = planData.find(i => i.codigo === codigo);
   if (!item) return;
   item.estado = nuevo;
-  // Persistir override (o limpiar si coincide con el original del Excel)
   if (nuevo === condicionToEstado(item.condicion)) delete customEstados[codigo];
   else customEstados[codigo] = nuevo;
   saveCustomEstados();
@@ -159,63 +301,53 @@ function renderAll() {
 }
 
 function getStats() {
-  const total = planData.length;
-  const aprobadas = planData.filter(i => i.estado === 'aprobada').length;
-  const cursando = planData.filter(i => i.estado === 'cursando').length;
+  const total      = planData.length;
+  const aprobadas  = planData.filter(i => i.estado === 'aprobada').length;
+  const cursando   = planData.filter(i => i.estado === 'cursando').length;
   const pendientes = planData.filter(i => i.estado === 'pendiente de final').length;
   const disponibles = planData.filter(i => displayStatus(i) === 'disponible').length;
-  const bloqueadas = planData.filter(i => displayStatus(i) === 'bloqueada').length;
-  const restantes = total - aprobadas;
-  const porcentaje = total ? (aprobadas / total * 100) : 0;
-
-  const notas = planData.filter(i => i.estado === 'aprobada' && i.nota > 0).map(i => i.nota);
-  const promedio = notas.length ? (notas.reduce((a, b) => a + b, 0) / notas.length) : null;
-
+  const bloqueadas  = planData.filter(i => displayStatus(i) === 'bloqueada').length;
+  const restantes   = total - aprobadas;
+  const porcentaje  = total ? (aprobadas / total * 100) : 0;
+  const notas       = planData.filter(i => i.estado === 'aprobada' && i.nota > 0).map(i => i.nota);
+  const promedio    = notas.length ? notas.reduce((a, b) => a + b, 0) / notas.length : null;
   return { total, aprobadas, cursando, pendientes, disponibles, bloqueadas, restantes, porcentaje, promedio };
 }
 
 function renderStats() {
   const s = getStats();
   document.getElementById('st-porcentaje').textContent = s.porcentaje.toFixed(1) + '%';
-  document.getElementById('st-progress').style.width = s.porcentaje + '%';
-  document.getElementById('st-aprobadas').textContent = s.aprobadas;
-  document.getElementById('st-total').textContent = s.total;
-  document.getElementById('st-promedio').textContent = s.promedio !== null ? s.promedio.toFixed(2) : '—';
+  document.getElementById('st-progress').style.width   = s.porcentaje + '%';
+  document.getElementById('st-aprobadas').textContent  = s.aprobadas;
+  document.getElementById('st-total').textContent      = s.total;
+  document.getElementById('st-promedio').textContent   = s.promedio !== null ? s.promedio.toFixed(2) : '—';
   document.getElementById('st-disponibles').textContent = s.disponibles;
-  document.getElementById('st-cursando').textContent = s.cursando;
-  document.getElementById('st-restantes').textContent = s.restantes;
+  document.getElementById('st-cursando').textContent   = s.cursando;
+  document.getElementById('st-restantes').textContent  = s.restantes;
   renderChart(s);
 }
 
 function renderChart(s) {
   const data = {
     labels: ['Aprobadas', 'Cursando', 'Pendientes', 'Disponibles', 'No disponibles'],
-    datasets: [{
-      data: [s.aprobadas, s.cursando, s.pendientes, s.disponibles, s.bloqueadas],
-      backgroundColor: ['#22c55e', '#f59e0b', '#60a5fa', '#22d3ee', '#475569'],
-      borderWidth: 0,
-    }],
+    datasets: [{ data: [s.aprobadas, s.cursando, s.pendientes, s.disponibles, s.bloqueadas],
+      backgroundColor: ['#22c55e', '#f59e0b', '#60a5fa', '#22d3ee', '#475569'], borderWidth: 0 }],
   };
   if (statusChart) { statusChart.data = data; statusChart.update(); return; }
   const ctx = document.getElementById('statusChart');
   if (!ctx || typeof Chart === 'undefined') return;
   statusChart = new Chart(ctx, {
-    type: 'doughnut',
-    data,
-    options: {
-      cutout: '64%',
-      plugins: { legend: { display: false } },
-      responsive: true,
-      maintainAspectRatio: false,
-    },
+    type: 'doughnut', data,
+    options: { cutout: '64%', plugins: { legend: { display: false } }, responsive: true, maintainAspectRatio: false },
   });
 }
+
+const ROMANO = { 1: 'I', 2: 'II', 3: 'III', 4: 'IV', 5: 'V' };
 
 function renderMalla() {
   const cont = document.getElementById('malla');
   const anios = [1, 2, 3, 4, 5];
   let html = '';
-
   anios.forEach(anio => {
     const delAnio = planData.filter(i => i.anio === anio);
     if (!delAnio.length) return;
@@ -231,8 +363,6 @@ function renderMalla() {
         </div>
       </div>`;
   });
-
-  // Transversales
   const trans = planData.filter(i => i.cuatri === 'Transversal');
   if (trans.length) {
     html += `
@@ -241,13 +371,10 @@ function renderMalla() {
           <span class="chip-count">${trans.filter(i => i.estado === 'aprobada').length}/${trans.length} aprobadas</span>
         </div>
         <div class="anio__body" style="grid-template-columns:1fr">
-          <div class="cuatri">
-            <div class="cuatri__list">${trans.map(subjectCard).join('')}</div>
-          </div>
+          <div class="cuatri"><div class="cuatri__list">${trans.map(subjectCard).join('')}</div></div>
         </div>
       </div>`;
   }
-
   cont.innerHTML = html;
   cont.querySelectorAll('.subject').forEach(el => {
     el.addEventListener('click', () => openModal(parseInt(el.dataset.codigo, 10)));
@@ -257,43 +384,41 @@ function renderMalla() {
 function cuatriCol(materias, cuatri, titulo) {
   const list = materias.filter(i => i.cuatri === cuatri);
   if (!list.length) return '';
-  return `
-    <div class="cuatri">
-      <div class="cuatri__title">${titulo}</div>
-      <div class="cuatri__list">${list.map(subjectCard).join('')}</div>
-    </div>`;
+  return `<div class="cuatri">
+    <div class="cuatri__title">${titulo}</div>
+    <div class="cuatri__list">${list.map(subjectCard).join('')}</div>
+  </div>`;
 }
 
 function subjectCard(item) {
-  const st = displayStatus(item);
+  const st   = displayStatus(item);
   const nota = (item.estado === 'aprobada' && item.nota > 0)
     ? `<span class="subject__nota">${item.nota}</span>` : '';
-  return `
-    <div class="subject subject--${st}" data-codigo="${item.codigo}" title="${escAttr(item.materia)}">
-      <span class="subject__st"></span>
-      <span class="subject__code">${item.codigo}</span>
-      <span class="subject__name">${item.materia}</span>
-      ${nota}
-    </div>`;
+  return `<div class="subject subject--${st}" data-codigo="${item.codigo}" title="${escAttr(item.materia)}">
+    <span class="subject__st"></span>
+    <span class="subject__code">${item.codigo}</span>
+    <span class="subject__name">${item.materia}</span>
+    ${nota}
+  </div>`;
 }
 
+/* ════════════════════════════════════════════════════════
+   Tabla / listado de materias
+   ════════════════════════════════════════════════════════ */
 const ESTADO_LABEL = {
   aprobada: 'Aprobada', cursando: 'Cursando',
   'pendiente de final': 'Pendiente de final', 'no cursada': 'No cursada',
 };
 
-/* ════════════════════════════════════════════════════════
-   Tabla / listado de materias
-   ════════════════════════════════════════════════════════ */
 function renderTable() {
   const body = document.getElementById('subjects-body');
   if (!body) return;
-  const q = (document.getElementById('search-input').value || '').trim().toLowerCase();
+  const q      = (document.getElementById('search-input').value || '').trim().toLowerCase();
   const filtro = document.getElementById('status-filter').value;
 
   const rows = planData.filter(item => {
-    const matchText = item.materia.toLowerCase().includes(q) || String(item.codigo).includes(q);
-    let matchStatus = true;
+    const matchText   = item.materia.toLowerCase().includes(q) || String(item.codigo).includes(q);
+    let matchStatus   = true;
     if (filtro === 'disponible' || filtro === 'bloqueada') matchStatus = displayStatus(item) === filtro;
     else if (filtro !== 'all') matchStatus = item.estado === filtro;
     return matchText && matchStatus;
@@ -305,30 +430,28 @@ function renderTable() {
   }
 
   body.innerHTML = rows.map(item => {
-    const st = displayStatus(item);
-    const sel = `<select class="state-select" data-codigo="${item.codigo}">
-      ${CICLO.map(e => `<option value="${e}" ${item.estado === e ? 'selected' : ''}>${ESTADO_LABEL[e]}</option>`).join('')}
-    </select>`;
-    const corr = correlativas[item.codigo] || [];
+    const corr     = correlativas[item.codigo] || [];
     const corrHtml = corr.length
       ? corr.map(c => {
           const ok = HABILITA.has((planData.find(p => p.codigo === c) || {}).estado);
           return `<span class="${ok ? 'ok' : 'no'}">${c}</span>`;
         }).join(', ')
       : '—';
-    const anioLabel = item.cuatri === 'Transversal' ? 'Trans.' : `${item.anio}º ${item.cuatri}`;
-    const notaVal = item.nota > 0 ? item.nota : '';
-    const disabledNota = item.estado === 'aprobada' ? '' : 'disabled';
-    return `
-      <tr>
-        <td class="code">${item.codigo}</td>
-        <td>${item.materia}</td>
-        <td>${anioLabel}</td>
-        <td>${item.trayecto || '—'}</td>
-        <td>${sel}</td>
-        <td class="corr-list">${corrHtml}</td>
-        <td><input class="nota-input" type="number" min="1" max="10" data-codigo="${item.codigo}" value="${notaVal}" placeholder="—" ${disabledNota}></td>
-      </tr>`;
+    const anioLabel  = item.cuatri === 'Transversal' ? 'Trans.' : `${item.anio}º ${item.cuatri}`;
+    const notaVal    = item.nota > 0 ? item.nota : '';
+    const disNota    = item.estado === 'aprobada' ? '' : 'disabled';
+    const sel        = `<select class="state-select" data-codigo="${item.codigo}">
+      ${CICLO.map(e => `<option value="${e}" ${item.estado === e ? 'selected' : ''}>${ESTADO_LABEL[e]}</option>`).join('')}
+    </select>`;
+    return `<tr>
+      <td class="code">${item.codigo}</td>
+      <td>${item.materia}</td>
+      <td>${anioLabel}</td>
+      <td>${item.trayecto || '—'}</td>
+      <td>${sel}</td>
+      <td class="corr-list">${corrHtml}</td>
+      <td><input class="nota-input" type="number" min="1" max="10" data-codigo="${item.codigo}" value="${notaVal}" placeholder="—" ${disNota}></td>
+    </tr>`;
   }).join('');
 
   body.querySelectorAll('.state-select').forEach(sel => {
@@ -340,7 +463,7 @@ function renderTable() {
       let v = parseInt(e.target.value, 10);
       if (isNaN(v)) v = 0;
       else v = Math.max(1, Math.min(10, v));
-      setNota(cod, v);   // persiste en localStorage y re-renderiza
+      setNota(cod, v);
     });
   });
 }
@@ -348,22 +471,19 @@ function renderTable() {
 function initPlanControls() {
   document.getElementById('search-input').addEventListener('input', renderTable);
   document.getElementById('status-filter').addEventListener('change', renderTable);
-  document.getElementById('export-plan').addEventListener('click', exportPlan);
-}
-
-function exportPlan() {
-  const out = planData.map(i => ({
-    codigo: i.codigo, materia: i.materia, trayecto: i.trayecto,
-    anio: i.anio, cuatri: i.cuatri, estado: i.estado,
-    disponibilidad: i.disponibilidad, nota: i.nota,
-  }));
-  descargar('plan_actualizado.json', JSON.stringify(out, null, 2));
+  document.getElementById('export-plan').addEventListener('click', () => {
+    const out = planData.map(i => ({
+      codigo: i.codigo, materia: i.materia, trayecto: i.trayecto,
+      anio: i.anio, cuatri: i.cuatri, estado: i.estado,
+      disponibilidad: i.disponibilidad, nota: i.nota,
+    }));
+    descargar('plan_actualizado.json', JSON.stringify(out, null, 2));
+  });
 }
 
 /* ════════════════════════════════════════════════════════
    Modal editor de materia
    ════════════════════════════════════════════════════════ */
-
 let modalCodigo = null;
 
 function openModal(codigo) {
@@ -371,29 +491,25 @@ function openModal(codigo) {
   if (!item) return;
   modalCodigo = codigo;
 
-  document.getElementById('modal-code').textContent = `Código ${item.codigo}`;
+  document.getElementById('modal-code').textContent  = `Código ${item.codigo}`;
   document.getElementById('modal-title').textContent = item.materia;
   const anioLabel = item.cuatri === 'Transversal' ? 'Transversal' : `${item.anio}º año · ${item.cuatri}`;
-  document.getElementById('modal-meta').textContent = `${item.trayecto || '—'} · ${anioLabel}`;
+  document.getElementById('modal-meta').textContent  = `${item.trayecto || '—'} · ${anioLabel}`;
 
-  // Correlativas
-  const corr = correlativas[item.codigo] || [];
+  const corr   = correlativas[item.codigo] || [];
   const corrEl = document.getElementById('modal-corr');
   if (!corr.length) {
     corrEl.innerHTML = 'Sin correlativas.';
   } else {
-    const parts = corr.map(c => {
+    corrEl.innerHTML = 'Correlativas: ' + corr.map(c => {
       const dep = planData.find(p => p.codigo === c);
-      const ok = dep && HABILITA.has(dep.estado);
-      const nombre = dep ? dep.materia : c;
-      return `<span class="${ok ? 'ok' : 'no'}">${ok ? '✓' : '✗'} ${nombre}</span>`;
-    });
-    corrEl.innerHTML = 'Correlativas: ' + parts.join(' · ');
+      const ok  = dep && HABILITA.has(dep.estado);
+      return `<span class="${ok ? 'ok' : 'no'}">${ok ? '✓' : '✗'} ${dep ? dep.materia : c}</span>`;
+    }).join(' · ');
   }
 
   renderModalStates(item.estado);
   renderModalNota(item);
-
   document.getElementById('modal-backdrop').classList.add('open');
 }
 
@@ -407,7 +523,6 @@ function renderModalStates(actual) {
   cont.querySelectorAll('.state-opt').forEach(btn => {
     btn.addEventListener('click', () => {
       setEstado(modalCodigo, btn.dataset.st);
-      // refrescar el modal con el item actualizado
       const item = planData.find(i => i.codigo === modalCodigo);
       renderModalStates(item.estado);
       renderModalNota(item);
@@ -416,9 +531,8 @@ function renderModalStates(actual) {
 }
 
 function renderModalNota(item) {
-  const row = document.getElementById('modal-nota-row');
+  const row   = document.getElementById('modal-nota-row');
   const input = document.getElementById('modal-nota');
-  // La nota solo tiene sentido cuando la materia está aprobada
   row.classList.toggle('is-hidden', item.estado !== 'aprobada');
   input.value = item.nota > 0 ? item.nota : '';
 }
@@ -448,12 +562,11 @@ function initModal() {
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape' && document.getElementById('modal-backdrop').classList.contains('open')) closeModal();
   });
-  // Guardar la nota al salir del campo
   document.getElementById('modal-nota').addEventListener('change', commitModalNota);
 }
 
 /* ════════════════════════════════════════════════════════
-   Historial de Notas (editable)
+   Historial de Notas
    ════════════════════════════════════════════════════════ */
 const COLS = [
   { key: 'primerParcial',  label: '1º Parcial / TP' },
@@ -471,7 +584,7 @@ function nuevaMateria() {
 }
 
 async function loadHistorial() {
-  const saved = localStorage.getItem(STORE_HISTORIAL);
+  const saved = localStorage.getItem(uk(STORE_HISTORIAL));
   if (saved) {
     try { historialData = JSON.parse(saved); }
     catch { historialData = await fetchHistorialBase(); }
@@ -487,7 +600,7 @@ async function fetchHistorialBase() {
 }
 
 function saveHistorial() {
-  localStorage.setItem(STORE_HISTORIAL, JSON.stringify(historialData));
+  localStorage.setItem(uk(STORE_HISTORIAL), JSON.stringify(historialData));
 }
 
 function notaClase(val) {
@@ -498,8 +611,7 @@ function notaClase(val) {
 
 function promedioSemestre(sem) {
   const finals = sem.materias.map(m => {
-    const cand = [m.notaPromocion, m.segundoIntento, m.tercerIntento]
-      .map(x => parseFloat(x)).filter(x => !isNaN(x));
+    const cand = [m.notaPromocion, m.segundoIntento, m.tercerIntento].map(x => parseFloat(x)).filter(x => !isNaN(x));
     return cand.length ? Math.max(...cand) : NaN;
   }).filter(x => !isNaN(x));
   if (!finals.length) return null;
@@ -509,14 +621,13 @@ function promedioSemestre(sem) {
 function renderHistorial() {
   const cont = document.getElementById('historial-container');
   if (!historialData.length) {
-    cont.innerHTML = `<p class="muted" style="padding:20px">No hay cuatrimestres. Agregá uno con “+ Cuatrimestre”.</p>`;
+    cont.innerHTML = `<p class="muted" style="padding:20px">No hay cuatrimestres. Agregá uno con "+ Cuatrimestre".</p>`;
     return;
   }
-
   cont.innerHTML = historialData.map((sem, si) => {
-    const avg = promedioSemestre(sem);
+    const avg      = promedioSemestre(sem);
     const headCols = COLS.map(c => `<th>${c.label}</th>`).join('');
-    const rows = sem.materias.map((m, mi) => {
+    const rows     = sem.materias.map((m, mi) => {
       const notas = COLS.map(c =>
         `<td><input class="hist-input hist-input--nota ${notaClase(m[c.key])}" data-s="${si}" data-m="${mi}" data-k="${c.key}" value="${escAttr(m[c.key])}" placeholder="—"></td>`
       ).join('');
@@ -526,7 +637,6 @@ function renderHistorial() {
         <td class="hist-row-actions"><button class="icon-btn" data-del-row="${si},${mi}" title="Eliminar fila">✕</button></td>
       </tr>`;
     }).join('');
-
     return `
       <div class="semestre">
         <div class="semestre__head">
@@ -545,20 +655,16 @@ function renderHistorial() {
         </div>
       </div>`;
   }).join('');
-
   bindHistorialEvents();
 }
 
 function bindHistorialEvents() {
   const cont = document.getElementById('historial-container');
-
   cont.querySelectorAll('.hist-input').forEach(inp => {
     inp.addEventListener('input', e => {
       const { s, m, k } = e.target.dataset;
       historialData[s].materias[m][k] = e.target.value;
-      if (k !== 'materia') {
-        e.target.className = `hist-input hist-input--nota ${notaClase(e.target.value)}`;
-      }
+      if (k !== 'materia') e.target.className = `hist-input hist-input--nota ${notaClase(e.target.value)}`;
       saveHistorial();
       const avgEl = cont.querySelectorAll('.semestre__avg')[s];
       if (avgEl) {
@@ -567,21 +673,12 @@ function bindHistorialEvents() {
       }
     });
   });
-
   cont.querySelectorAll('.semestre__title').forEach(inp => {
-    inp.addEventListener('input', e => {
-      historialData[e.target.dataset.title].semestre = e.target.value;
-      saveHistorial();
-    });
+    inp.addEventListener('input', e => { historialData[e.target.dataset.title].semestre = e.target.value; saveHistorial(); });
   });
-
   cont.querySelectorAll('[data-add-row]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      historialData[btn.dataset.addRow].materias.push(nuevaMateria());
-      saveHistorial(); renderHistorial();
-    });
+    btn.addEventListener('click', () => { historialData[btn.dataset.addRow].materias.push(nuevaMateria()); saveHistorial(); renderHistorial(); });
   });
-
   cont.querySelectorAll('[data-del-row]').forEach(btn => {
     btn.addEventListener('click', () => {
       const [s, m] = btn.dataset.delRow.split(',').map(Number);
@@ -589,13 +686,11 @@ function bindHistorialEvents() {
       saveHistorial(); renderHistorial();
     });
   });
-
   cont.querySelectorAll('[data-del-sem]').forEach(btn => {
     btn.addEventListener('click', () => {
       const s = Number(btn.dataset.delSem);
       if (confirm(`¿Eliminar el cuatrimestre "${historialData[s].semestre || ''}"?`)) {
-        historialData.splice(s, 1);
-        saveHistorial(); renderHistorial();
+        historialData.splice(s, 1); saveHistorial(); renderHistorial();
       }
     });
   });
@@ -608,15 +703,12 @@ function initHistorialControls() {
     const titles = document.querySelectorAll('.semestre__title');
     if (titles.length) titles[titles.length - 1].focus();
   });
-
   document.getElementById('export-historial').addEventListener('click', () => {
     descargar('historial_notas.json', JSON.stringify(historialData, null, 2));
   });
-
   document.getElementById('reset-historial').addEventListener('click', async () => {
     if (confirm('Esto descarta tus cambios y restaura el historial original del Excel. ¿Continuar?')) {
-      historialData = await fetchHistorialBase();
-      saveHistorial(); renderHistorial();
+      historialData = await fetchHistorialBase(); saveHistorial(); renderHistorial();
     }
   });
 }
@@ -627,17 +719,32 @@ function initHistorialControls() {
 function escAttr(s) {
   return String(s ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
 }
-
 function descargar(nombre, contenido) {
   const blob = new Blob([contenido], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
   a.href = url; a.download = nombre; a.click();
   URL.revokeObjectURL(url);
 }
 
 /* ════════════════════════════════════════════════════════
-   Init
+   Init app (después de login exitoso)
+   ════════════════════════════════════════════════════════ */
+async function initApp() {
+  planData = []; correlativas = {}; customEstados = {}; customNotas = {};
+  if (statusChart) { statusChart.destroy(); statusChart = null; }
+  try {
+    await loadPlan();
+  } catch (err) {
+    console.error(err);
+    document.getElementById('malla').innerHTML =
+      '<p class="muted" style="padding:20px">No se pudo cargar el plan. Revisá la conexión.</p>';
+  }
+  await loadHistorial();
+}
+
+/* ════════════════════════════════════════════════════════
+   Init global
    ════════════════════════════════════════════════════════ */
 window.addEventListener('DOMContentLoaded', async () => {
   initTheme();
@@ -645,12 +752,15 @@ window.addEventListener('DOMContentLoaded', async () => {
   initModal();
   initPlanControls();
   initHistorialControls();
-  try {
-    await loadPlan();
-  } catch (err) {
-    console.error(err);
-    document.getElementById('malla').innerHTML =
-      '<p class="muted" style="padding:20px">No se pudo cargar el plan. Abrí la página desde un servidor (GitHub Pages) y no con doble clic en el archivo.</p>';
+  initLoginScreen();
+
+  const session = getSession();
+  if (session) {
+    // Sesión válida: entrar directo
+    currentUser = session.username;
+    hideLoginScreen();
+    await initApp();
+  } else {
+    showLoginScreen();
   }
-  await loadHistorial();
 });
