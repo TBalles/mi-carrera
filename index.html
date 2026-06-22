@@ -80,6 +80,41 @@
       <!-- Malla curricular -->
       <div id="malla" class="malla"></div>
 
+      <!-- Listado / tabla de materias -->
+      <div class="panel">
+        <div class="panel__head">
+          <h2>Listado de materias</h2>
+          <div class="filters">
+            <input id="search-input" type="search" placeholder="Buscar materia o código…" />
+            <select id="status-filter">
+              <option value="all">Todos los estados</option>
+              <option value="aprobada">Aprobadas</option>
+              <option value="cursando">Cursando</option>
+              <option value="pendiente de final">Pendientes de final</option>
+              <option value="disponible">Disponibles</option>
+              <option value="bloqueada">No disponibles</option>
+            </select>
+            <button id="export-plan" class="btn btn--ghost">Exportar</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="grid-table">
+            <thead>
+              <tr>
+                <th>Código</th>
+                <th>Materia</th>
+                <th>Año</th>
+                <th>Trayecto</th>
+                <th>Estado</th>
+                <th>Correlativas</th>
+                <th>Nota</th>
+              </tr>
+            </thead>
+            <tbody id="subjects-body"></tbody>
+          </table>
+        </div>
+      </div>
+
     </section>
 
     <!-- ============ TAB: HISTORIAL ============ -->

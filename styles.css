@@ -298,7 +298,12 @@ button { font-family: inherit; cursor: pointer; }
 .btn--danger { background: transparent; border-color: color-mix(in srgb, #f87171 50%, transparent); color: #f87171; padding: 6px 10px; font-size: .8rem; }
 .btn--danger:hover { background: rgba(248,113,113,.12); }
 
-/* ── Panels & filtros (historial) ───────────────── */
+/* ── Panels & filtros ───────────────────────────── */
+.panel {
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: var(--radius); box-shadow: var(--shadow);
+  overflow: hidden; margin-bottom: 28px;
+}
 .panel__head {
   display: flex; align-items: center; justify-content: space-between; gap: 16px;
   padding: 18px 20px; border-bottom: 1px solid var(--line); flex-wrap: wrap;
@@ -306,8 +311,40 @@ button { font-family: inherit; cursor: pointer; }
 .panel__head h2 { font-size: 1.05rem; }
 .panel__head--page { border: 0; padding: 0 4px 18px; align-items: flex-end; }
 .filters { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.filters input, .filters select {
+  padding: 9px 12px; border-radius: 10px; border: 1px solid var(--line);
+  background: var(--card-soft); color: var(--ink); font-size: .88rem; outline: none;
+}
+.filters input { min-width: 220px; }
+.filters input:focus, .filters select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
 
 .table-wrap { overflow-x: auto; }
+
+/* ── Tabla de materias ──────────────────────────── */
+.grid-table { width: 100%; border-collapse: collapse; min-width: 760px; }
+.grid-table th {
+  text-align: left; padding: 12px 16px; font-size: .74rem; text-transform: uppercase;
+  letter-spacing: .06em; color: var(--muted); border-bottom: 1px solid var(--line); font-weight: 600;
+}
+.grid-table td { padding: 11px 16px; border-bottom: 1px solid var(--line); font-size: .88rem; }
+.grid-table tbody tr:last-child td { border-bottom: 0; }
+.grid-table tbody tr:hover { background: var(--card-soft); }
+.grid-table .code { color: var(--muted); font-variant-numeric: tabular-nums; }
+.corr-list { color: var(--muted); font-size: .8rem; }
+.corr-list .ok { color: var(--aprobada); }
+.corr-list .no { color: #f87171; }
+
+.state-select {
+  padding: 6px 10px; border-radius: 8px; border: 1px solid var(--line);
+  background: var(--card-soft); color: var(--ink); font-size: .82rem; font-weight: 500; cursor: pointer;
+}
+.state-select:focus { border-color: var(--accent); outline: none; }
+.nota-input {
+  width: 56px; padding: 6px 8px; border-radius: 8px; border: 1px solid var(--line);
+  text-align: center; font-size: .85rem; font-weight: 600; color: var(--ink); background: var(--card-soft);
+}
+.nota-input:disabled { opacity: .4; cursor: not-allowed; }
+.nota-input:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 0 3px var(--accent-soft); }
 
 /* ── Historial editable ─────────────────────────── */
 .historial { display: grid; gap: 18px; }
