@@ -107,10 +107,16 @@ function displayStatus(item) {
   return item.disponibilidad === 'Disponible' ? 'disponible' : 'bloqueada';
 }
 
+// Fetch de JSON robusto: elimina un BOM inicial si lo hubiera antes de parsear.
+async function fetchJSON(url) {
+  const text = await fetch(url).then(r => r.text());
+  return JSON.parse(text.replace(/^﻿/, ''));
+}
+
 async function loadPlan() {
   const [plan, corr] = await Promise.all([
-    fetch('plan.json').then(r => r.json()),
-    fetch('correlativas.json').then(r => r.json()),
+    fetchJSON('plan.json'),
+    fetchJSON('correlativas.json'),
   ]);
   planData = plan;
   correlativas = corr;
@@ -149,6 +155,7 @@ function setNota(codigo, nota) {
 function renderAll() {
   renderStats();
   renderMalla();
+  renderTable();
 }
 
 function getStats() {
@@ -270,13 +277,92 @@ function subjectCard(item) {
     </div>`;
 }
 
-/* ════════════════════════════════════════════════════════
-   Modal editor de materia
-   ════════════════════════════════════════════════════════ */
 const ESTADO_LABEL = {
   aprobada: 'Aprobada', cursando: 'Cursando',
   'pendiente de final': 'Pendiente de final', 'no cursada': 'No cursada',
 };
+
+/* ════════════════════════════════════════════════════════
+   Tabla / listado de materias
+   ════════════════════════════════════════════════════════ */
+function renderTable() {
+  const body = document.getElementById('subjects-body');
+  if (!body) return;
+  const q = (document.getElementById('search-input').value || '').trim().toLowerCase();
+  const filtro = document.getElementById('status-filter').value;
+
+  const rows = planData.filter(item => {
+    const matchText = item.materia.toLowerCase().includes(q) || String(item.codigo).includes(q);
+    let matchStatus = true;
+    if (filtro === 'disponible' || filtro === 'bloqueada') matchStatus = displayStatus(item) === filtro;
+    else if (filtro !== 'all') matchStatus = item.estado === filtro;
+    return matchText && matchStatus;
+  });
+
+  if (!rows.length) {
+    body.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px">Sin resultados.</td></tr>`;
+    return;
+  }
+
+  body.innerHTML = rows.map(item => {
+    const st = displayStatus(item);
+    const sel = `<select class="state-select" data-codigo="${item.codigo}">
+      ${CICLO.map(e => `<option value="${e}" ${item.estado === e ? 'selected' : ''}>${ESTADO_LABEL[e]}</option>`).join('')}
+    </select>`;
+    const corr = correlativas[item.codigo] || [];
+    const corrHtml = corr.length
+      ? corr.map(c => {
+          const ok = HABILITA.has((planData.find(p => p.codigo === c) || {}).estado);
+          return `<span class="${ok ? 'ok' : 'no'}">${c}</span>`;
+        }).join(', ')
+      : '—';
+    const anioLabel = item.cuatri === 'Transversal' ? 'Trans.' : `${item.anio}º ${item.cuatri}`;
+    const notaVal = item.nota > 0 ? item.nota : '';
+    const disabledNota = item.estado === 'aprobada' ? '' : 'disabled';
+    return `
+      <tr>
+        <td class="code">${item.codigo}</td>
+        <td>${item.materia}</td>
+        <td>${anioLabel}</td>
+        <td>${item.trayecto || '—'}</td>
+        <td>${sel}</td>
+        <td class="corr-list">${corrHtml}</td>
+        <td><input class="nota-input" type="number" min="1" max="10" data-codigo="${item.codigo}" value="${notaVal}" placeholder="—" ${disabledNota}></td>
+      </tr>`;
+  }).join('');
+
+  body.querySelectorAll('.state-select').forEach(sel => {
+    sel.addEventListener('change', e => setEstado(parseInt(e.target.dataset.codigo, 10), e.target.value));
+  });
+  body.querySelectorAll('.nota-input').forEach(inp => {
+    inp.addEventListener('change', e => {
+      const cod = parseInt(e.target.dataset.codigo, 10);
+      let v = parseInt(e.target.value, 10);
+      if (isNaN(v)) v = 0;
+      else v = Math.max(1, Math.min(10, v));
+      setNota(cod, v);   // persiste en localStorage y re-renderiza
+    });
+  });
+}
+
+function initPlanControls() {
+  document.getElementById('search-input').addEventListener('input', renderTable);
+  document.getElementById('status-filter').addEventListener('change', renderTable);
+  document.getElementById('export-plan').addEventListener('click', exportPlan);
+}
+
+function exportPlan() {
+  const out = planData.map(i => ({
+    codigo: i.codigo, materia: i.materia, trayecto: i.trayecto,
+    anio: i.anio, cuatri: i.cuatri, estado: i.estado,
+    disponibilidad: i.disponibilidad, nota: i.nota,
+  }));
+  descargar('plan_actualizado.json', JSON.stringify(out, null, 2));
+}
+
+/* ════════════════════════════════════════════════════════
+   Modal editor de materia
+   ════════════════════════════════════════════════════════ */
 
 let modalCodigo = null;
 
@@ -396,7 +482,7 @@ async function loadHistorial() {
 }
 
 async function fetchHistorialBase() {
-  try { return await fetch('historial.json').then(r => r.json()); }
+  try { return await fetchJSON('historial.json'); }
   catch { return []; }
 }
 
@@ -557,6 +643,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   initTheme();
   initTabs();
   initModal();
+  initPlanControls();
   initHistorialControls();
   try {
     await loadPlan();
