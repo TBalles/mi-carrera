@@ -59,6 +59,7 @@
         <div class="topbar__right">
           <nav class="tabs">
             <button class="tab tab--active" data-tab="plan">Plan de Estudios</button>
+            <button class="tab" data-tab="grafo">Correlativas</button>
             <button class="tab" data-tab="historial">Historial de Notas</button>
           </nav>
           <span class="user-chip" id="user-chip"></span>
@@ -143,6 +144,33 @@
           </div>
         </div>
 
+      </section>
+
+      <!-- ============ TAB: CORRELATIVAS (GRAFO) ============ -->
+      <section class="tabpanel" data-panel="grafo">
+        <div class="legend">
+          <span class="legend__item"><i class="dot dot--aprobada"></i>Aprobada</span>
+          <span class="legend__item"><i class="dot dot--cursando"></i>Cursando</span>
+          <span class="legend__item"><i class="dot dot--pendiente"></i>Pendiente de final</span>
+          <span class="legend__item"><i class="dot dot--disponible"></i>Disponible</span>
+          <span class="legend__item"><i class="dot dot--bloqueada"></i>No disponible</span>
+          <span class="legend__hint">Las flechas van de la correlativa a la materia que habilita</span>
+        </div>
+        <div class="grafo-wrap">
+          <div id="grafo" class="grafo"></div>
+          <div class="grafo-controls">
+            <button id="grafo-zoom-in"  class="grafo-ctrl" title="Acercar" aria-label="Acercar">+</button>
+            <button id="grafo-zoom-out" class="grafo-ctrl" title="Alejar" aria-label="Alejar">−</button>
+            <button id="grafo-fit"      class="grafo-ctrl" title="Centrar" aria-label="Centrar">⊡</button>
+          </div>
+          <div id="grafo-info" class="grafo-info">
+            <button id="grafo-info-close" class="grafo-info__close" aria-label="Cerrar">✕</button>
+            <div id="grafo-info-title" class="grafo-info__title"></div>
+            <div id="grafo-info-meta"  class="grafo-info__meta"></div>
+            <button id="grafo-info-edit" class="btn btn--primary btn--sm">Editar estado / nota</button>
+          </div>
+          <div class="grafo-hint">Tocá un nodo para resaltar su cadena de correlativas · doble clic para editar</div>
+        </div>
       </section>
 
       <!-- ============ TAB: HISTORIAL ============ -->

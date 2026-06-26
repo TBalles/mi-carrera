@@ -529,6 +529,115 @@ button { font-family: inherit; cursor: pointer; }
 .link-add:hover { border-color: var(--accent); background: var(--accent-soft); }
 .semestre__del { margin-left: auto; }
 
+/* ── Árbol / grafo de correlatividades ──────────── */
+.grafo-wrap {
+  position: relative;
+  height: 74vh; min-height: 460px;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: var(--card);
+  -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur);
+  box-shadow: var(--shadow), var(--glass-hi);
+  overflow: hidden;
+}
+.grafo {
+  position: absolute; inset: 0;
+  touch-action: none; cursor: grab;
+}
+.grafo:active { cursor: grabbing; }
+#grafo-svg { display: block; font-family: 'Inter', system-ui, sans-serif; }
+#grafo-viewport { transition: transform .05s linear; }
+
+/* Aristas */
+.gedge { fill: none; stroke: var(--line-strong); stroke-width: 1.6; opacity: .45; transition: stroke .25s var(--ease), opacity .25s var(--ease); }
+.gedges.dim .gedge { opacity: .07; }
+.gedge.is-chain { stroke: var(--accent); opacity: .95; stroke-width: 2.2; }
+
+/* Etiquetas de columna */
+.gcol-label { text-anchor: middle; fill: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+
+/* Nodos */
+.gnode { cursor: pointer; }
+.gnode rect {
+  fill: var(--card-soft); stroke: var(--line-strong); stroke-width: 1.5;
+  transition: fill .3s var(--ease), stroke .3s var(--ease), opacity .3s var(--ease);
+}
+.gnode-dot { fill: var(--muted); transition: fill .3s var(--ease); }
+.gnode-code { fill: var(--muted); font-size: 10px; font-weight: 600; }
+.gnode-name { fill: var(--ink); font-size: 11.5px; font-weight: 600; }
+.gnode-nota { fill: var(--aprobada); font-size: 13px; font-weight: 800; text-anchor: end; }
+.gnode:hover rect { stroke-width: 2.4; }
+
+/* Colores por estado (idénticos al Plan) */
+.gnode--aprobada   rect { fill: var(--aprobada-bg);   stroke: var(--aprobada); }
+.gnode--cursando   rect { fill: var(--cursando-bg);   stroke: var(--cursando); }
+.gnode--pendiente  rect { fill: var(--pendiente-bg);  stroke: var(--pendiente); }
+.gnode--disponible rect { fill: var(--disponible-bg); stroke: var(--disponible); }
+.gnode--bloqueada  rect { fill: var(--card-soft);     stroke: var(--line-strong); }
+.gnode--aprobada   .gnode-dot { fill: var(--aprobada); }
+.gnode--cursando   .gnode-dot { fill: var(--cursando); }
+.gnode--pendiente  .gnode-dot { fill: var(--pendiente); }
+.gnode--disponible .gnode-dot { fill: var(--disponible); }
+.gnode--bloqueada  .gnode-dot { fill: var(--bloqueada); }
+.gnode--bloqueada  { opacity: .62; }
+
+/* Selección / cadena resaltada */
+.gnodes.dim .gnode:not(.is-sel):not(.is-chain) { opacity: .16; }
+.gnode.is-sel rect { stroke-width: 3.2; }
+.gnode.is-sel rect, .gnode.is-chain rect { filter: drop-shadow(0 4px 12px rgba(0,0,0,.4)); }
+
+/* Controles flotantes */
+.grafo-controls {
+  position: absolute; top: 14px; right: 14px;
+  display: flex; flex-direction: column; gap: 8px; z-index: 4;
+}
+.grafo-ctrl {
+  width: 38px; height: 38px; border-radius: 11px;
+  display: grid; place-items: center;
+  border: 1px solid var(--line); background: color-mix(in srgb, var(--card-solid) 75%, transparent);
+  -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur);
+  color: var(--ink); font-size: 1.1rem; font-weight: 700;
+  box-shadow: var(--shadow), var(--glass-hi);
+  transition: color .25s var(--ease), border-color .25s var(--ease), transform .3s var(--ease-out);
+}
+.grafo-ctrl:hover { color: var(--accent); border-color: var(--accent); }
+.grafo-ctrl:active { transform: scale(.92); }
+
+/* Tarjeta de info del nodo seleccionado */
+.grafo-info {
+  position: absolute; left: 14px; bottom: 14px; z-index: 4;
+  width: min(320px, calc(100% - 28px));
+  padding: 16px; border-radius: 16px;
+  border: 1px solid var(--line-strong); background: color-mix(in srgb, var(--card-solid) 82%, transparent);
+  -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur);
+  box-shadow: var(--shadow-lg), var(--glass-hi);
+  opacity: 0; transform: translateY(12px); pointer-events: none;
+  transition: opacity .3s var(--ease), transform .4s var(--spring);
+}
+.grafo-info.visible { opacity: 1; transform: none; pointer-events: auto; }
+.grafo-info__close {
+  position: absolute; top: 10px; right: 10px;
+  border: 0; background: transparent; color: var(--muted); font-size: .95rem;
+  width: 26px; height: 26px; border-radius: 7px;
+}
+.grafo-info__close:hover { color: var(--ink); background: var(--card-soft); }
+.grafo-info__title { font-size: .95rem; font-weight: 700; margin-bottom: 4px; padding-right: 24px; }
+.grafo-info__meta { font-size: .82rem; color: var(--ink-soft); margin-bottom: 12px; }
+.grafo-info__meta b { color: var(--accent); }
+
+.grafo-hint {
+  position: absolute; left: 14px; top: 14px; z-index: 3;
+  font-size: .76rem; color: var(--muted);
+  background: color-mix(in srgb, var(--card-solid) 70%, transparent);
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+  padding: 6px 10px; border-radius: 9px; border: 1px solid var(--line);
+  max-width: calc(100% - 80px);
+}
+@media (max-width: 560px) {
+  .grafo-hint { display: none; }
+  .grafo-wrap { height: 68vh; }
+}
+
 /* ── Footer ─────────────────────────────────────── */
 .foot {
   text-align: center; padding: 30px; color: var(--muted); font-size: .82rem;
