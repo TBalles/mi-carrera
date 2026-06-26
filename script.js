@@ -510,6 +510,23 @@ function initPlanControls() {
     }));
     descargar('plan_actualizado.json', JSON.stringify(out, null, 2));
   });
+  document.getElementById('reset-plan').addEventListener('click', resetCarrera);
+}
+
+// Reinicia toda la carrera: todas las materias a "no cursada" y sin notas
+function resetCarrera() {
+  if (!confirm('¿Reiniciar toda la carrera a 0%? Se marcarán TODAS las materias como "no cursada" y se borrarán las notas. Esta acción no se puede deshacer.')) return;
+  customEstados = {};
+  customNotas = {};
+  planData.forEach(i => {
+    i.estado = 'no cursada';
+    i.nota = 0;
+    customEstados[i.codigo] = 'no cursada';   // override explícito sobre el dato del Excel
+  });
+  saveData('estados', customEstados);
+  saveData('notas', customNotas);
+  recalcular();
+  renderAll();
 }
 
 /* ════════════════════════════════════════════════════════
