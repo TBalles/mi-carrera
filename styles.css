@@ -23,9 +23,9 @@
   --line: rgba(232, 220, 204, 0.07);
   --line-strong: rgba(232, 220, 204, 0.13);
 
-  --accent: #d27a59;
-  --accent-strong: #bd6041;
-  --accent-soft: rgba(210, 122, 89, 0.14);
+  --accent: #6d8bf5;
+  --accent-strong: #4f6ee0;
+  --accent-soft: rgba(109, 139, 245, 0.15);
 
   /* status (sin cambios) */
   --aprobada: #22c55e;     --aprobada-bg: rgba(34,197,94,.16);
@@ -64,9 +64,9 @@
   --line: rgba(60, 50, 38, 0.1);
   --line-strong: rgba(60, 50, 38, 0.16);
 
-  --accent: #c2613c;
-  --accent-strong: #a84e2e;
-  --accent-soft: rgba(194, 97, 60, 0.1);
+  --accent: #4a63d8;
+  --accent-strong: #3a4fc0;
+  --accent-soft: rgba(74, 99, 216, 0.1);
 
   --aprobada: #16a34a;     --aprobada-bg: #dcfce7;
   --cursando: #d97706;     --cursando-bg: #fef3c7;
@@ -197,9 +197,9 @@ button { font-family: inherit; cursor: pointer; }
 .brand__logo {
   display: grid; place-items: center;
   width: 40px; height: 40px; border-radius: 13px;
-  background: linear-gradient(135deg, var(--accent), #8a4329);
+  background: linear-gradient(135deg, var(--accent), #3a3fb0);
   color: #fff; font-size: 1.25rem;
-  box-shadow: 0 6px 18px rgba(201,109,77,.35), var(--glass-hi);
+  box-shadow: 0 6px 18px rgba(79,110,224,.35), var(--glass-hi);
 }
 .brand strong { display: block; font-size: 1rem; font-weight: 700; }
 .brand__sub { font-size: .78rem; color: var(--muted); }
@@ -415,7 +415,7 @@ button { font-family: inherit; cursor: pointer; }
   transition: transform .3s var(--ease-out), background .3s var(--ease), border-color .3s var(--ease), color .3s var(--ease), filter .3s var(--ease);
 }
 .btn:active { transform: scale(.96); }
-.btn--primary { background: var(--accent-strong); color: #fff; box-shadow: 0 6px 18px rgba(201,109,77,.3); }
+.btn--primary { background: var(--accent-strong); color: #fff; box-shadow: 0 6px 18px rgba(79,110,224,.3); }
 .btn--primary:hover { filter: brightness(1.1); transform: translateY(-1px); }
 .btn--ghost { background: var(--card-soft); border-color: var(--line); color: var(--ink-soft); }
 .btn--ghost:hover { border-color: var(--accent); color: var(--accent); }
