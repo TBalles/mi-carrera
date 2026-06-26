@@ -4,24 +4,24 @@
    Tema oscuro (por defecto) · negros y grises + liquid glass
    ════════════════════════════════════════════════════════ */
 :root {
-  --bg: #100f0d;
+  --bg: #050505;
   --bg-grad:
-    radial-gradient(1200px 700px at 82% -12%, #1c1916 0%, transparent 55%),
-    radial-gradient(900px 600px at -12% 8%, #161310 0%, transparent 52%),
-    #100f0d;
+    radial-gradient(1200px 700px at 82% -12%, #121010 0%, transparent 55%),
+    radial-gradient(900px 600px at -12% 8%, #0b0a09 0%, transparent 52%),
+    #050505;
 
-  /* Capsulas de vidrio (gris cálido oscuro) */
-  --card: rgba(27, 24, 21, 0.66);
-  --card-soft: rgba(39, 35, 31, 0.6);
-  --card-solid: #181512;
-  --glass-blur: blur(18px) saturate(112%);
-  --glass-hi: inset 0 1px 0 rgba(240, 228, 214, 0.045);
+  /* Capsulas de vidrio (casi negro cálido) */
+  --card: rgba(15, 13, 12, 0.72);
+  --card-soft: rgba(24, 21, 19, 0.66);
+  --card-solid: #0d0c0b;
+  --glass-blur: blur(18px) saturate(110%);
+  --glass-hi: inset 0 1px 0 rgba(240, 228, 214, 0.04);
 
-  --ink: #e9e4db;
-  --ink-soft: #a89e90;
-  --muted: #7d7468;
-  --line: rgba(232, 220, 204, 0.08);
-  --line-strong: rgba(232, 220, 204, 0.15);
+  --ink: #e6e1d8;
+  --ink-soft: #9d9488;
+  --muted: #70675c;
+  --line: rgba(232, 220, 204, 0.07);
+  --line-strong: rgba(232, 220, 204, 0.13);
 
   --accent: #d27a59;
   --accent-strong: #bd6041;
