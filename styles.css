@@ -112,6 +112,11 @@ button { font-family: inherit; cursor: pointer; }
   color: #f87171; font-size: .85rem; padding: 9px 12px; border-radius: 9px; margin-bottom: 14px;
   display: none;
 }
+.login-info {
+  background: var(--accent-soft); border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+  color: var(--accent); font-size: .85rem; padding: 9px 12px; border-radius: 9px; margin-bottom: 14px;
+  display: none;
+}
 .login-submit { width: 100%; padding: 12px; font-size: .95rem; border-radius: 11px; margin-top: 4px; }
 .login-switch { text-align: center; margin-top: 20px; font-size: .88rem; color: var(--ink-soft); }
 .link-btn {
@@ -121,9 +126,9 @@ button { font-family: inherit; cursor: pointer; }
 .link-btn:hover { color: var(--accent-strong); }
 
 .user-chip {
-  font-size: .82rem; font-weight: 700; color: var(--accent);
+  font-size: .8rem; font-weight: 600; color: var(--accent);
   background: var(--accent-soft); border-radius: 8px; padding: 5px 10px;
-  white-space: nowrap; max-width: 140px; overflow: hidden; text-overflow: ellipsis;
+  white-space: nowrap; max-width: 180px; overflow: hidden; text-overflow: ellipsis;
 }
 .btn--sm { padding: 7px 12px; font-size: .82rem; }
 

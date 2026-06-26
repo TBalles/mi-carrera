@@ -1,174 +1,158 @@
 'use strict';
 
 /* ════════════════════════════════════════════════════════
-   Claves de almacenamiento
-   ════════════════════════════════════════════════════════ */
-const STORE_ESTADOS  = 'plan.customEstados.v2';
-const STORE_NOTAS    = 'plan.customNotas.v1';
-const STORE_HISTORIAL = 'plan.historial.v2';
-const STORE_THEME    = 'plan.theme.v1';
-const STORE_USERS    = 'app.users.v1';
-const STORE_SESSION  = 'app.session.v1';
-const SESSION_DAYS   = 30;
-
-// Las claves de datos se prefijan con el usuario activo
-let currentUser = null;
-function uk(key) { return `${key}.${currentUser}`; }
-
-/* ════════════════════════════════════════════════════════
-   Estado global del plan
+   Estado global
    ════════════════════════════════════════════════════════ */
 let planData = [];
 let correlativas = {};
 let customEstados = {};
 let customNotas = {};
+let historialData = [];
 let statusChart = null;
+let currentUser = null;          // objeto user de Supabase
+
+const STORE_THEME = 'plan.theme.v1';
 
 const CICLO    = ['no cursada', 'cursando', 'pendiente de final', 'aprobada'];
 const HABILITA = new Set(['aprobada', 'pendiente de final']);
 
 /* ════════════════════════════════════════════════════════
-   Autenticación
+   Persistencia en Supabase (nube, por usuario)
    ════════════════════════════════════════════════════════ */
-async function sha256(str) {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
-  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+async function loadUserData() {
+  customEstados = {};
+  customNotas = {};
+  historialData = null;
+  const { data, error } = await supabaseClient
+    .from('user_data').select('key,value').eq('user_id', currentUser.id);
+  if (error) { console.error('Error cargando datos:', error); return; }
+  for (const row of data || []) {
+    if (row.key === 'estados')   customEstados = row.value || {};
+    else if (row.key === 'notas')    customNotas = row.value || {};
+    else if (row.key === 'historial') historialData = row.value || [];
+  }
 }
 
-function getUsers() {
-  try { return JSON.parse(localStorage.getItem(STORE_USERS)) || {}; }
-  catch { return {}; }
-}
-function saveUsers(u) { localStorage.setItem(STORE_USERS, JSON.stringify(u)); }
-
-function getSession() {
-  try {
-    const s = JSON.parse(localStorage.getItem(STORE_SESSION));
-    if (!s || Date.now() > s.expires) { localStorage.removeItem(STORE_SESSION); return null; }
-    return s;
-  } catch { return null; }
-}
-function saveSession(username) {
-  localStorage.setItem(STORE_SESSION, JSON.stringify({
-    username, expires: Date.now() + SESSION_DAYS * 86_400_000,
-  }));
+const _saveTimers = {};
+function saveData(key, value) {
+  // Debounce por clave para no spamear la API en cada tecla
+  clearTimeout(_saveTimers[key]);
+  _saveTimers[key] = setTimeout(async () => {
+    const { error } = await supabaseClient.from('user_data').upsert({
+      user_id: currentUser.id, key, value, updated_at: new Date().toISOString(),
+    }, { onConflict: 'user_id,key' });
+    if (error) console.error(`Error guardando ${key}:`, error);
+  }, 500);
 }
 
-async function tryLogin(username, password) {
-  const users = getUsers();
-  const hash  = await sha256(password);
-  if (users[username] !== hash) return false;
-  currentUser = username;
-  saveSession(username);
-  return true;
+// Migra datos del localStorage viejo (versión sin nube) a la cuenta, una sola vez
+async function migrarLocalStorageSiHace() {
+  const oldEstados   = safeParse(localStorage.getItem('plan.customEstados.v2'));
+  const oldNotas     = safeParse(localStorage.getItem('plan.customNotas.v1'));
+  const oldHistorial = safeParse(localStorage.getItem('plan.historial.v2'));
+  const sinDatosEnNube = !Object.keys(customEstados).length
+    && !Object.keys(customNotas).length
+    && (!historialData || !historialData.length);
+  if (!sinDatosEnNube) return;
+
+  let migrado = false;
+  if (oldEstados && Object.keys(oldEstados).length)   { customEstados = oldEstados; saveData('estados', customEstados); migrado = true; }
+  if (oldNotas && Object.keys(oldNotas).length)       { customNotas = oldNotas; saveData('notas', customNotas); migrado = true; }
+  if (oldHistorial && oldHistorial.length)            { historialData = oldHistorial; saveData('historial', historialData); migrado = true; }
+  if (migrado) console.info('Datos locales migrados a tu cuenta en la nube.');
 }
 
-async function tryRegister(username, password) {
-  const users = getUsers();
-  if (users[username]) return false;   // ya existe
-  const hash = await sha256(password);
-  users[username] = hash;
-  saveUsers(users);
-  currentUser = username;
-  saveSession(username);
-  migrateOldData(username);
-  return true;
-}
-
-function migrateOldData(username) {
-  // Mueve datos previos (sin prefijo de usuario) al nuevo usuario — solo si no hay datos propios aún
-  [STORE_ESTADOS, STORE_NOTAS, STORE_HISTORIAL].forEach(key => {
-    const old = localStorage.getItem(key);
-    if (old && !localStorage.getItem(`${key}.${username}`)) {
-      localStorage.setItem(`${key}.${username}`, old);
-    }
-  });
-}
-
-function logout() {
-  localStorage.removeItem(STORE_SESSION);
-  currentUser = null;
-  // Reset plan state
-  planData = []; correlativas = {}; customEstados = {}; customNotas = {};
-  if (statusChart) { statusChart.destroy(); statusChart = null; }
-  showLoginScreen();
-}
+function safeParse(s) { try { return JSON.parse(s); } catch { return null; } }
 
 /* ════════════════════════════════════════════════════════
-   Pantalla de login
+   Autenticación
    ════════════════════════════════════════════════════════ */
-let loginMode = 'login'; // 'login' | 'register'
+let authMode = 'login'; // 'login' | 'register'
 
-function showLoginScreen() {
+function showLogin() {
   document.getElementById('login-screen').classList.add('visible');
   document.getElementById('app').classList.remove('visible');
-  document.getElementById('login-user').value = '';
-  document.getElementById('login-pass').value = '';
-  setLoginError('');
-  setLoginMode('login');
-  setTimeout(() => document.getElementById('login-user').focus(), 80);
+  setAuthError('');
+  setAuthMode('login');
+  setTimeout(() => document.getElementById('login-email').focus(), 80);
 }
 
-function hideLoginScreen() {
+function hideLogin() {
   document.getElementById('login-screen').classList.remove('visible');
   document.getElementById('app').classList.add('visible');
-  document.getElementById('user-chip').textContent = currentUser;
+  document.getElementById('user-chip').textContent = currentUser?.email || '';
 }
 
-function setLoginMode(mode) {
-  loginMode = mode;
-  document.getElementById('login-title').textContent   = mode === 'login' ? 'Iniciar sesión' : 'Crear cuenta';
-  document.getElementById('login-submit').textContent  = mode === 'login' ? 'Entrar' : 'Registrarse';
-  document.getElementById('switch-text').textContent   = mode === 'login' ? '¿No tenés cuenta?' : '¿Ya tenés cuenta?';
-  document.getElementById('switch-btn').textContent    = mode === 'login' ? 'Registrarse' : 'Iniciar sesión';
-  setLoginError('');
+function setAuthMode(mode) {
+  authMode = mode;
+  document.getElementById('login-title').textContent  = mode === 'login' ? 'Iniciar sesión' : 'Crear cuenta';
+  document.getElementById('login-submit').textContent = mode === 'login' ? 'Entrar' : 'Registrarse';
+  document.getElementById('switch-text').textContent  = mode === 'login' ? '¿No tenés cuenta?' : '¿Ya tenés cuenta?';
+  document.getElementById('switch-btn').textContent   = mode === 'login' ? 'Registrarse' : 'Iniciar sesión';
+  setAuthError('');
+  setAuthInfo('');
 }
 
-function setLoginError(msg) {
+function setAuthError(msg) {
   const el = document.getElementById('login-error');
-  el.textContent = msg;
-  el.style.display = msg ? 'block' : 'none';
+  el.textContent = msg; el.style.display = msg ? 'block' : 'none';
+}
+function setAuthInfo(msg) {
+  const el = document.getElementById('login-info');
+  el.textContent = msg; el.style.display = msg ? 'block' : 'none';
 }
 
 function initLoginScreen() {
   document.getElementById('switch-btn').addEventListener('click', () =>
-    setLoginMode(loginMode === 'login' ? 'register' : 'login')
-  );
+    setAuthMode(authMode === 'login' ? 'register' : 'login'));
 
   document.getElementById('login-form').addEventListener('submit', async e => {
     e.preventDefault();
-    const username = document.getElementById('login-user').value.trim();
-    const password = document.getElementById('login-pass').value;
-    const btn = document.getElementById('login-submit');
+    const email = document.getElementById('login-email').value.trim();
+    const pass  = document.getElementById('login-pass').value;
+    const btn   = document.getElementById('login-submit');
+    setAuthError(''); setAuthInfo('');
 
-    if (!username) { setLoginError('Ingresá un nombre de usuario.'); return; }
-    if (password.length < 4) { setLoginError('La contraseña debe tener al menos 4 caracteres.'); return; }
+    if (!email) { setAuthError('Ingresá tu email.'); return; }
+    if (pass.length < 6) { setAuthError('La contraseña debe tener al menos 6 caracteres.'); return; }
 
     btn.disabled = true;
+    const txtPrev = btn.textContent;
     btn.textContent = '…';
 
-    if (loginMode === 'login') {
-      const ok = await tryLogin(username, password);
-      if (!ok) {
-        setLoginError('Usuario o contraseña incorrectos.');
-        btn.disabled = false;
-        btn.textContent = 'Entrar';
-      } else {
-        await initApp();
-        hideLoginScreen();
+    if (authMode === 'login') {
+      const { error } = await supabaseClient.auth.signInWithPassword({ email, password: pass });
+      if (error) {
+        setAuthError(traducirError(error.message));
+        btn.disabled = false; btn.textContent = txtPrev;
       }
+      // si OK, onAuthStateChange se encarga de entrar
     } else {
-      const ok = await tryRegister(username, password);
-      if (!ok) {
-        setLoginError('Ese nombre de usuario ya existe.');
-        btn.disabled = false;
-        btn.textContent = 'Registrarse';
-      } else {
-        await initApp();
-        hideLoginScreen();
+      const { data, error } = await supabaseClient.auth.signUp({ email, password: pass });
+      if (error) {
+        setAuthError(traducirError(error.message));
+        btn.disabled = false; btn.textContent = txtPrev;
+      } else if (!data.session) {
+        // Falta confirmar email (si la confirmación está activada en Supabase)
+        setAuthInfo('Te enviamos un email para confirmar tu cuenta. Confirmalo y volvé a iniciar sesión.');
+        setAuthMode('login');
+        btn.disabled = false; btn.textContent = 'Entrar';
       }
+      // si hay session, onAuthStateChange entra directo
     }
   });
+}
+
+function traducirError(msg) {
+  if (/invalid login credentials/i.test(msg)) return 'Email o contraseña incorrectos.';
+  if (/user already registered/i.test(msg))   return 'Ese email ya está registrado.';
+  if (/email/i.test(msg) && /valid/i.test(msg)) return 'Ingresá un email válido.';
+  return msg;
+}
+
+async function logout() {
+  await supabaseClient.auth.signOut();
+  // onAuthStateChange muestra el login
 }
 
 /* ════════════════════════════════════════════════════════
@@ -181,8 +165,7 @@ function applyTheme(theme) {
   if (btn) btn.textContent = theme === 'light' ? '☀' : '☾';
 }
 function initTheme() {
-  const saved = localStorage.getItem(STORE_THEME) || 'dark';
-  applyTheme(saved);
+  applyTheme(localStorage.getItem(STORE_THEME) || 'dark');
   document.getElementById('theme-toggle').addEventListener('click', () => {
     const now = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
     localStorage.setItem(STORE_THEME, now);
@@ -207,36 +190,23 @@ function initTabs() {
 }
 
 /* ════════════════════════════════════════════════════════
-   Carga y cálculo del plan
+   Cálculo del plan
    ════════════════════════════════════════════════════════ */
-function loadStore(key) {
-  try { return JSON.parse(localStorage.getItem(uk(key))) || {}; }
-  catch { return {}; }
-}
-function loadCustomEstados() { customEstados = loadStore(STORE_ESTADOS); }
-function saveCustomEstados() { localStorage.setItem(uk(STORE_ESTADOS), JSON.stringify(customEstados)); }
-function loadCustomNotas()   { customNotas   = loadStore(STORE_NOTAS); }
-function saveCustomNotas()   { localStorage.setItem(uk(STORE_NOTAS), JSON.stringify(customNotas)); }
-
 function condicionToEstado(condicion) {
   if (condicion === 'Aprobada') return 'aprobada';
   if (condicion === 'Cursada')  return 'cursando';
   return 'no cursada';
 }
-function baseEstado(item) {
-  return customEstados[item.codigo] || condicionToEstado(item.condicion);
-}
-function baseNota(item) {
-  return (item.codigo in customNotas) ? customNotas[item.codigo] : (item.nota || 0);
-}
+function baseEstado(item) { return customEstados[item.codigo] || condicionToEstado(item.condicion); }
+function baseNota(item)   { return (item.codigo in customNotas) ? customNotas[item.codigo] : (item.nota || 0); }
 
 function recalcular() {
   const estadoPorCodigo = {};
   planData.forEach(i => { estadoPorCodigo[i.codigo] = i.estado; });
   planData.forEach(item => {
-    const prereqs   = correlativas[item.codigo] || [];
+    const prereqs    = correlativas[item.codigo] || [];
     const habilitada = prereqs.every(c => HABILITA.has(estadoPorCodigo[c]));
-    item.habilitada = habilitada;
+    item.habilitada  = habilitada;
     item.disponibilidad = (item.estado !== 'no cursada')
       ? 'No disponible'
       : (habilitada ? 'Disponible' : 'No disponible');
@@ -244,13 +214,12 @@ function recalcular() {
 }
 
 function displayStatus(item) {
-  if (item.estado === 'aprobada')          return 'aprobada';
-  if (item.estado === 'cursando')          return 'cursando';
+  if (item.estado === 'aprobada')           return 'aprobada';
+  if (item.estado === 'cursando')           return 'cursando';
   if (item.estado === 'pendiente de final') return 'pendiente';
   return item.disponibilidad === 'Disponible' ? 'disponible' : 'bloqueada';
 }
 
-// Fetch robusto: descarta BOM si lo hubiera
 async function fetchJSON(url) {
   const text = await fetch(url).then(r => r.text());
   return JSON.parse(text.replace(/^﻿/, ''));
@@ -261,10 +230,8 @@ async function loadPlan() {
     fetchJSON('plan.json'),
     fetchJSON('correlativas.json'),
   ]);
-  planData = plan;
+  planData     = plan;
   correlativas = corr;
-  loadCustomEstados();
-  loadCustomNotas();
   planData.forEach(i => { i.estado = baseEstado(i); i.nota = baseNota(i); });
   recalcular();
   renderAll();
@@ -276,7 +243,7 @@ function setEstado(codigo, nuevo) {
   item.estado = nuevo;
   if (nuevo === condicionToEstado(item.condicion)) delete customEstados[codigo];
   else customEstados[codigo] = nuevo;
-  saveCustomEstados();
+  saveData('estados', customEstados);
   recalcular();
   renderAll();
 }
@@ -287,7 +254,7 @@ function setNota(codigo, nota) {
   item.nota = nota;
   if (!nota) delete customNotas[codigo];
   else customNotas[codigo] = nota;
-  saveCustomNotas();
+  saveData('notas', customNotas);
   renderAll();
 }
 
@@ -301,10 +268,10 @@ function renderAll() {
 }
 
 function getStats() {
-  const total      = planData.length;
-  const aprobadas  = planData.filter(i => i.estado === 'aprobada').length;
-  const cursando   = planData.filter(i => i.estado === 'cursando').length;
-  const pendientes = planData.filter(i => i.estado === 'pendiente de final').length;
+  const total       = planData.length;
+  const aprobadas   = planData.filter(i => i.estado === 'aprobada').length;
+  const cursando    = planData.filter(i => i.estado === 'cursando').length;
+  const pendientes  = planData.filter(i => i.estado === 'pendiente de final').length;
   const disponibles = planData.filter(i => displayStatus(i) === 'disponible').length;
   const bloqueadas  = planData.filter(i => displayStatus(i) === 'bloqueada').length;
   const restantes   = total - aprobadas;
@@ -316,14 +283,14 @@ function getStats() {
 
 function renderStats() {
   const s = getStats();
-  document.getElementById('st-porcentaje').textContent = s.porcentaje.toFixed(1) + '%';
-  document.getElementById('st-progress').style.width   = s.porcentaje + '%';
-  document.getElementById('st-aprobadas').textContent  = s.aprobadas;
-  document.getElementById('st-total').textContent      = s.total;
-  document.getElementById('st-promedio').textContent   = s.promedio !== null ? s.promedio.toFixed(2) : '—';
+  document.getElementById('st-porcentaje').textContent  = s.porcentaje.toFixed(1) + '%';
+  document.getElementById('st-progress').style.width    = s.porcentaje + '%';
+  document.getElementById('st-aprobadas').textContent   = s.aprobadas;
+  document.getElementById('st-total').textContent       = s.total;
+  document.getElementById('st-promedio').textContent    = s.promedio !== null ? s.promedio.toFixed(2) : '—';
   document.getElementById('st-disponibles').textContent = s.disponibles;
-  document.getElementById('st-cursando').textContent   = s.cursando;
-  document.getElementById('st-restantes').textContent  = s.restantes;
+  document.getElementById('st-cursando').textContent    = s.cursando;
+  document.getElementById('st-restantes').textContent   = s.restantes;
   renderChart(s);
 }
 
@@ -342,10 +309,8 @@ function renderChart(s) {
   });
 }
 
-const ROMANO = { 1: 'I', 2: 'II', 3: 'III', 4: 'IV', 5: 'V' };
-
 function renderMalla() {
-  const cont = document.getElementById('malla');
+  const cont  = document.getElementById('malla');
   const anios = [1, 2, 3, 4, 5];
   let html = '';
   anios.forEach(anio => {
@@ -417,8 +382,8 @@ function renderTable() {
   const filtro = document.getElementById('status-filter').value;
 
   const rows = planData.filter(item => {
-    const matchText   = item.materia.toLowerCase().includes(q) || String(item.codigo).includes(q);
-    let matchStatus   = true;
+    const matchText = item.materia.toLowerCase().includes(q) || String(item.codigo).includes(q);
+    let matchStatus = true;
     if (filtro === 'disponible' || filtro === 'bloqueada') matchStatus = displayStatus(item) === filtro;
     else if (filtro !== 'all') matchStatus = item.estado === filtro;
     return matchText && matchStatus;
@@ -437,10 +402,10 @@ function renderTable() {
           return `<span class="${ok ? 'ok' : 'no'}">${c}</span>`;
         }).join(', ')
       : '—';
-    const anioLabel  = item.cuatri === 'Transversal' ? 'Trans.' : `${item.anio}º ${item.cuatri}`;
-    const notaVal    = item.nota > 0 ? item.nota : '';
-    const disNota    = item.estado === 'aprobada' ? '' : 'disabled';
-    const sel        = `<select class="state-select" data-codigo="${item.codigo}">
+    const anioLabel = item.cuatri === 'Transversal' ? 'Trans.' : `${item.anio}º ${item.cuatri}`;
+    const notaVal   = item.nota > 0 ? item.nota : '';
+    const disNota   = item.estado === 'aprobada' ? '' : 'disabled';
+    const sel       = `<select class="state-select" data-codigo="${item.codigo}">
       ${CICLO.map(e => `<option value="${e}" ${item.estado === e ? 'selected' : ''}>${ESTADO_LABEL[e]}</option>`).join('')}
     </select>`;
     return `<tr>
@@ -577,18 +542,13 @@ const COLS = [
   { key: 'tercerIntento',  label: '3º Final' },
 ];
 
-let historialData = [];
-
 function nuevaMateria() {
   return { materia: '', primerParcial: '', segundoParcial: '', recuperatorio: '', notaPromocion: '', segundoIntento: '', tercerIntento: '' };
 }
 
 async function loadHistorial() {
-  const saved = localStorage.getItem(uk(STORE_HISTORIAL));
-  if (saved) {
-    try { historialData = JSON.parse(saved); }
-    catch { historialData = await fetchHistorialBase(); }
-  } else {
+  // historialData ya viene de loadUserData(); si está vacío, usar la base del Excel
+  if (!historialData || !historialData.length) {
     historialData = await fetchHistorialBase();
   }
   renderHistorial();
@@ -599,9 +559,7 @@ async function fetchHistorialBase() {
   catch { return []; }
 }
 
-function saveHistorial() {
-  localStorage.setItem(uk(STORE_HISTORIAL), JSON.stringify(historialData));
-}
+function saveHistorial() { saveData('historial', historialData); }
 
 function notaClase(val) {
   const n = parseFloat(val);
@@ -728,11 +686,14 @@ function descargar(nombre, contenido) {
 }
 
 /* ════════════════════════════════════════════════════════
-   Init app (después de login exitoso)
+   Entrar a la app (tras login)
    ════════════════════════════════════════════════════════ */
-async function initApp() {
-  planData = []; correlativas = {}; customEstados = {}; customNotas = {};
-  if (statusChart) { statusChart.destroy(); statusChart = null; }
+let appInicializada = false;
+
+async function enterApp() {
+  hideLogin();
+  await loadUserData();
+  await migrarLocalStorageSiHace();
   try {
     await loadPlan();
   } catch (err) {
@@ -741,6 +702,7 @@ async function initApp() {
       '<p class="muted" style="padding:20px">No se pudo cargar el plan. Revisá la conexión.</p>';
   }
   await loadHistorial();
+  appInicializada = true;
 }
 
 /* ════════════════════════════════════════════════════════
@@ -754,13 +716,25 @@ window.addEventListener('DOMContentLoaded', async () => {
   initHistorialControls();
   initLoginScreen();
 
-  const session = getSession();
-  if (session) {
-    // Sesión válida: entrar directo
-    currentUser = session.username;
-    hideLoginScreen();
-    await initApp();
+  // Reaccionar a cambios de sesión (login, logout, refresh de token)
+  supabaseClient.auth.onAuthStateChange((event, session) => {
+    if (session?.user) {
+      currentUser = session.user;
+      if (event === 'SIGNED_IN' || (event === 'INITIAL_SESSION')) enterApp();
+    } else {
+      currentUser = null;
+      appInicializada = false;
+      if (statusChart) { statusChart.destroy(); statusChart = null; }
+      showLogin();
+    }
+  });
+
+  // Estado inicial por si onAuthStateChange no dispara INITIAL_SESSION
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if (session?.user) {
+    currentUser = session.user;
+    if (!appInicializada) enterApp();
   } else {
-    showLoginScreen();
+    showLogin();
   }
 });

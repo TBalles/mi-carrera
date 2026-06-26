@@ -6,12 +6,14 @@
   <title>Mi Carrera · Ingeniería en Informática</title>
   <link rel="stylesheet" href="styles.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
   <script src="script.js" defer></script>
 </head>
 <body>
 
   <!-- ============ PANTALLA DE LOGIN ============ -->
-  <div id="login-screen" class="login-screen">
+  <div id="login-screen" class="login-screen visible">
     <div class="login-card">
       <div class="login-brand">
         <span class="brand__logo">◐</span>
@@ -21,22 +23,23 @@
         </div>
       </div>
       <h2 id="login-title">Iniciar sesión</h2>
-      <p class="login-hint">Ingresá con tu usuario para ver y editar tu plan.</p>
+      <p class="login-hint">Tus datos se guardan en la nube: accedé desde cualquier dispositivo.</p>
       <form id="login-form" novalidate autocomplete="on">
         <div class="login-field">
-          <label for="login-user">Usuario</label>
-          <input id="login-user" type="text" placeholder="tu usuario" autocomplete="username" spellcheck="false" />
+          <label for="login-email">Email</label>
+          <input id="login-email" type="email" placeholder="tu@email.com" autocomplete="email" spellcheck="false" />
         </div>
         <div class="login-field">
           <label for="login-pass">Contraseña</label>
           <input id="login-pass" type="password" placeholder="••••••••" autocomplete="current-password" />
         </div>
         <div id="login-error" class="login-error"></div>
+        <div id="login-info" class="login-info"></div>
         <button type="submit" class="btn btn--primary login-submit" id="login-submit">Entrar</button>
       </form>
       <p class="login-switch">
         <span id="switch-text">¿No tenés cuenta?</span>
-        <button class="link-btn" id="switch-btn">Registrarse</button>
+        <button class="link-btn" id="switch-btn" type="button">Registrarse</button>
       </p>
     </div>
   </div>
@@ -111,7 +114,6 @@
 
         <div id="malla" class="malla"></div>
 
-        <!-- Listado / tabla de materias -->
         <div class="panel">
           <div class="panel__head">
             <h2>Listado de materias</h2>
