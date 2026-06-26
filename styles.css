@@ -4,28 +4,28 @@
    Tema oscuro (por defecto) · negros y grises + liquid glass
    ════════════════════════════════════════════════════════ */
 :root {
-  --bg: #191816;
+  --bg: #100f0d;
   --bg-grad:
-    radial-gradient(1200px 700px at 82% -12%, #2a2723 0%, transparent 55%),
-    radial-gradient(900px 600px at -12% 8%, #221f1d 0%, transparent 52%),
-    #191816;
+    radial-gradient(1200px 700px at 82% -12%, #1c1916 0%, transparent 55%),
+    radial-gradient(900px 600px at -12% 8%, #161310 0%, transparent 52%),
+    #100f0d;
 
-  /* Capsulas de vidrio (gris cálido) */
-  --card: rgba(38, 35, 32, 0.64);
-  --card-soft: rgba(52, 48, 43, 0.58);
-  --card-solid: #262320;
-  --glass-blur: blur(18px) saturate(115%);
-  --glass-hi: inset 0 1px 0 rgba(245, 235, 222, 0.05);
+  /* Capsulas de vidrio (gris cálido oscuro) */
+  --card: rgba(27, 24, 21, 0.66);
+  --card-soft: rgba(39, 35, 31, 0.6);
+  --card-solid: #181512;
+  --glass-blur: blur(18px) saturate(112%);
+  --glass-hi: inset 0 1px 0 rgba(240, 228, 214, 0.045);
 
-  --ink: #edeae3;
-  --ink-soft: #b2a99c;
-  --muted: #897f72;
-  --line: rgba(235, 225, 210, 0.09);
-  --line-strong: rgba(235, 225, 210, 0.17);
+  --ink: #e9e4db;
+  --ink-soft: #a89e90;
+  --muted: #7d7468;
+  --line: rgba(232, 220, 204, 0.08);
+  --line-strong: rgba(232, 220, 204, 0.15);
 
-  --accent: #d9876a;
-  --accent-strong: #c96d4d;
-  --accent-soft: rgba(217, 135, 106, 0.15);
+  --accent: #d27a59;
+  --accent-strong: #bd6041;
+  --accent-soft: rgba(210, 122, 89, 0.14);
 
   /* status (sin cambios) */
   --aprobada: #22c55e;     --aprobada-bg: rgba(34,197,94,.16);
@@ -184,7 +184,9 @@ button { font-family: inherit; cursor: pointer; }
   background: color-mix(in srgb, var(--card-solid) 70%, transparent);
   -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur);
   border-bottom: 1px solid var(--line);
+  transition: transform .35s var(--ease);
 }
+.topbar--hidden { transform: translateY(-100%); }
 .topbar__inner {
   max-width: 1180px; margin: 0 auto;
   padding: 14px 24px;
@@ -685,13 +687,17 @@ button { font-family: inherit; cursor: pointer; }
 }
 
 @media (max-width: 560px) {
-  /* Topbar full-width apilada */
-  .topbar__inner { flex-direction: column; align-items: stretch; }
-  .brand { justify-content: center; }
-  .topbar__right { justify-content: space-between; width: 100%; }
-  .tabs { flex: 1; }
-  .tab { flex: 1; text-align: center; padding: 9px 10px; }
-  .user-chip { order: 3; flex-basis: 100%; text-align: center; max-width: none; }
+  /* Topbar compacta: fila 1 = marca + controles, fila 2 = tabs */
+  .topbar__inner { flex-wrap: wrap; align-items: center; padding: 8px 14px; gap: 8px 10px; }
+  .brand { flex: 1; min-width: 0; }
+  .brand__logo { width: 32px; height: 32px; font-size: 1rem; border-radius: 10px; }
+  .brand strong { font-size: .9rem; }
+  .brand__sub { display: none; }
+  .topbar__right { flex: 1; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+  .user-chip { display: none; }
+  .theme-toggle { width: 36px; height: 36px; }
+  .tabs { order: 5; flex-basis: 100%; }
+  .tab { flex: 1; text-align: center; padding: 8px 8px; font-size: .82rem; }
 
   .stats { grid-template-columns: 1fr; }
   .stat { padding: 16px; }

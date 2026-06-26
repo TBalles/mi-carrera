@@ -234,6 +234,27 @@ function initTabs() {
 }
 
 /* ════════════════════════════════════════════════════════
+   Auto-ocultar el header al bajar (solo pantallas chicas)
+   ════════════════════════════════════════════════════════ */
+function initTopbarAutohide() {
+  const tb = document.querySelector('.topbar');
+  if (!tb) return;
+  let lastY = window.scrollY, ticking = false;
+  window.addEventListener('scroll', () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => {
+      const y = window.scrollY;
+      const mobile = window.innerWidth <= 720;
+      if (mobile && y > lastY && y > 90) tb.classList.add('topbar--hidden');
+      else tb.classList.remove('topbar--hidden');
+      lastY = y;
+      ticking = false;
+    });
+  }, { passive: true });
+}
+
+/* ════════════════════════════════════════════════════════
    Cálculo del plan
    ════════════════════════════════════════════════════════ */
 function condicionToEstado(condicion) {
@@ -1070,6 +1091,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   initPlanControls();
   initHistorialControls();
   initGrafo();
+  initTopbarAutohide();
   initLoginScreen();
 
   // Reaccionar a cambios de sesión (login, logout, refresh de token)
