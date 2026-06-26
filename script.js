@@ -309,6 +309,7 @@ function renderAll() {
   renderStats();
   renderMalla();
   renderTable();
+  renderGrafo();
 }
 
 function getStats() {
@@ -730,6 +731,283 @@ function descargar(nombre, contenido) {
 }
 
 /* ════════════════════════════════════════════════════════
+   Árbol / grafo de correlatividades
+   ════════════════════════════════════════════════════════ */
+const GNODE_W = 168, GNODE_H = 48, GCOL_GAP = 74, GROW_GAP = 16, GMARGIN = 30, GHEAD = 30;
+
+let grafoView = { tx: 0, ty: 0, s: 1 };
+let grafoFitted = false;
+let grafoSel = null;
+let grafoLayout = null;
+let dependentsOf = null;
+
+function clampNum(v, a, b) { return Math.max(a, Math.min(b, v)); }
+
+// Columna cronológica de cada materia (transversales primero)
+function grafoCol(item) {
+  if (item.cuatri === 'Transversal') return 0;
+  return (item.anio - 1) * 2 + (item.cuatri === '1°C' ? 1 : 2);
+}
+function grafoColLabel(col) {
+  if (col === 0) return 'Transv.';
+  const anio = Math.floor((col - 1) / 2) + 1;
+  return `${anio}° ${col % 2 === 1 ? '1°C' : '2°C'}`;
+}
+
+function buildDependents() {
+  dependentsOf = {};
+  planData.forEach(it => { dependentsOf[it.codigo] = []; });
+  planData.forEach(it => {
+    (correlativas[it.codigo] || []).forEach(p => {
+      if (dependentsOf[p]) dependentsOf[p].push(it.codigo);
+    });
+  });
+}
+function ancestorsOf(cod) {
+  const seen = new Set(); const stack = [...(correlativas[cod] || [])];
+  while (stack.length) {
+    const x = stack.pop();
+    if (seen.has(x)) continue; seen.add(x);
+    (correlativas[x] || []).forEach(p => stack.push(p));
+  }
+  return seen;
+}
+function descendantsOf(cod) {
+  const seen = new Set(); const stack = [...((dependentsOf && dependentsOf[cod]) || [])];
+  while (stack.length) {
+    const x = stack.pop();
+    if (seen.has(x)) continue; seen.add(x);
+    ((dependentsOf && dependentsOf[x]) || []).forEach(d => stack.push(d));
+  }
+  return seen;
+}
+
+function computeGrafoLayout() {
+  const byCol = {};
+  planData.forEach(it => { (byCol[grafoCol(it)] = byCol[grafoCol(it)] || []).push(it); });
+  const cols = Object.keys(byCol).map(Number).sort((a, b) => a - b);
+  const nodes = new Map();
+  let maxRows = 0;
+  cols.forEach(c => {
+    byCol[c].sort((a, b) => a.codigo - b.codigo);
+    byCol[c].forEach((it, row) => {
+      nodes.set(it.codigo, {
+        x: GMARGIN + c * (GNODE_W + GCOL_GAP),
+        y: GMARGIN + GHEAD + row * (GNODE_H + GROW_GAP),
+        item: it,
+      });
+    });
+    maxRows = Math.max(maxRows, byCol[c].length);
+  });
+  const lastCol = cols.length ? cols[cols.length - 1] : 0;
+  grafoLayout = {
+    nodes, cols,
+    width:  GMARGIN * 2 + lastCol * (GNODE_W + GCOL_GAP) + GNODE_W,
+    height: GMARGIN * 2 + GHEAD + maxRows * (GNODE_H + GROW_GAP),
+  };
+}
+
+function renderGrafo() {
+  const host = document.getElementById('grafo');
+  if (!host || !planData.length) return;
+  if (!dependentsOf) buildDependents();
+  computeGrafoLayout();
+  const { nodes, cols } = grafoLayout;
+
+  let edges = '';
+  planData.forEach(it => {
+    const to = nodes.get(it.codigo); if (!to) return;
+    (correlativas[it.codigo] || []).forEach(p => {
+      const from = nodes.get(p); if (!from) return;
+      const x1 = from.x + GNODE_W, y1 = from.y + GNODE_H / 2;
+      const x2 = to.x,            y2 = to.y + GNODE_H / 2;
+      const dx = Math.max(36, Math.abs(x2 - x1) * 0.45);
+      edges += `<path class="gedge" data-from="${p}" data-to="${it.codigo}" d="M${x1},${y1} C${x1 + dx},${y1} ${x2 - dx},${y2} ${x2},${y2}"/>`;
+    });
+  });
+
+  let heads = '';
+  cols.forEach(c => {
+    const cx = GMARGIN + c * (GNODE_W + GCOL_GAP) + GNODE_W / 2;
+    heads += `<text class="gcol-label" x="${cx}" y="${GMARGIN + 12}">${grafoColLabel(c)}</text>`;
+  });
+
+  let gnodes = '';
+  nodes.forEach(({ x, y, item }) => {
+    const st = displayStatus(item);
+    const nombre = item.materia.length > 24 ? item.materia.slice(0, 23) + '…' : item.materia;
+    const nota = (item.estado === 'aprobada' && item.nota > 0)
+      ? `<text class="gnode-nota" x="${x + GNODE_W - 12}" y="${y + GNODE_H / 2 + 4}">${item.nota}</text>` : '';
+    gnodes += `<g class="gnode gnode--${st}" data-codigo="${item.codigo}">
+      <rect x="${x}" y="${y}" width="${GNODE_W}" height="${GNODE_H}" rx="12"/>
+      <circle class="gnode-dot" cx="${x + 14}" cy="${y + GNODE_H / 2}" r="4.5"/>
+      <text class="gnode-code" x="${x + 26}" y="${y + 19}">${item.codigo}</text>
+      <text class="gnode-name" x="${x + 26}" y="${y + 35}">${escAttr(nombre)}</text>
+      ${nota}
+    </g>`;
+  });
+
+  host.innerHTML = `
+    <svg id="grafo-svg" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+      <g id="grafo-viewport">
+        <g class="gedges">${edges}</g>
+        <g class="gcol-labels">${heads}</g>
+        <g class="gnodes">${gnodes}</g>
+      </g>
+    </svg>`;
+
+  applyGrafoTransform();
+  if (grafoSel != null) applyGrafoSelection();
+  if (!grafoFitted) fitGrafo();
+}
+
+function applyGrafoTransform() {
+  const vp = document.getElementById('grafo-viewport');
+  if (vp) vp.setAttribute('transform', `translate(${grafoView.tx},${grafoView.ty}) scale(${grafoView.s})`);
+}
+
+function fitGrafo() {
+  const host = document.getElementById('grafo');
+  if (!host || !grafoLayout) return;
+  const cw = host.clientWidth, ch = host.clientHeight;
+  if (cw < 10 || ch < 10) return;
+  const pad = 28;
+  const s = clampNum(Math.min((cw - pad * 2) / grafoLayout.width, (ch - pad * 2) / grafoLayout.height), 0.18, 1.4);
+  grafoView.s = s;
+  grafoView.tx = Math.max(pad, (cw - grafoLayout.width * s) / 2);
+  grafoView.ty = pad;
+  grafoFitted = true;
+  applyGrafoTransform();
+}
+
+function zoomAround(factor, mx, my) {
+  const s0 = grafoView.s;
+  const s = clampNum(s0 * factor, 0.18, 2.6);
+  const wx = (mx - grafoView.tx) / s0, wy = (my - grafoView.ty) / s0;
+  grafoView.s = s;
+  grafoView.tx = mx - wx * s;
+  grafoView.ty = my - wy * s;
+  applyGrafoTransform();
+}
+function zoomGrafo(factor) {
+  const h = document.getElementById('grafo');
+  if (h) zoomAround(factor, h.clientWidth / 2, h.clientHeight / 2);
+}
+
+/* Selección: resalta la cadena (ancestros + descendientes) */
+function toggleSelectGrafo(cod) { (grafoSel === cod) ? deselectGrafo() : selectGrafo(cod); }
+
+function selectGrafo(cod) {
+  const item = planData.find(i => i.codigo === cod);
+  if (!item) return;
+  grafoSel = cod;
+  applyGrafoSelection();
+  const anc = ancestorsOf(cod), desc = descendantsOf(cod);
+  document.getElementById('grafo-info-title').textContent = `${item.codigo} · ${item.materia}`;
+  document.getElementById('grafo-info-meta').innerHTML =
+    `Necesitás <b>${anc.size}</b> antes · habilita <b>${desc.size}</b>`;
+  document.getElementById('grafo-info').classList.add('visible');
+}
+function deselectGrafo() {
+  grafoSel = null;
+  const info = document.getElementById('grafo-info');
+  if (info) info.classList.remove('visible');
+  applyGrafoSelection();
+}
+function applyGrafoSelection() {
+  const gnodes = document.querySelector('.gnodes');
+  const gedges = document.querySelector('.gedges');
+  if (!gnodes || !gedges) return;
+  gnodes.querySelectorAll('.gnode').forEach(n => n.classList.remove('is-sel', 'is-chain'));
+  gedges.querySelectorAll('.gedge').forEach(e => e.classList.remove('is-chain'));
+  if (grafoSel == null) { gnodes.classList.remove('dim'); gedges.classList.remove('dim'); return; }
+  const chain = new Set([grafoSel, ...ancestorsOf(grafoSel), ...descendantsOf(grafoSel)]);
+  gnodes.classList.add('dim'); gedges.classList.add('dim');
+  gnodes.querySelectorAll('.gnode').forEach(n => {
+    const c = parseInt(n.dataset.codigo, 10);
+    if (c === grafoSel) n.classList.add('is-sel');
+    else if (chain.has(c)) n.classList.add('is-chain');
+  });
+  gedges.querySelectorAll('.gedge').forEach(e => {
+    if (chain.has(parseInt(e.dataset.from, 10)) && chain.has(parseInt(e.dataset.to, 10)))
+      e.classList.add('is-chain');
+  });
+}
+
+function initGrafo() {
+  const host = document.getElementById('grafo');
+  if (!host) return;
+
+  document.getElementById('grafo-zoom-in').addEventListener('click', () => zoomGrafo(1.25));
+  document.getElementById('grafo-zoom-out').addEventListener('click', () => zoomGrafo(1 / 1.25));
+  document.getElementById('grafo-fit').addEventListener('click', () => { grafoFitted = false; fitGrafo(); });
+  document.getElementById('grafo-info-close').addEventListener('click', deselectGrafo);
+  document.getElementById('grafo-info-edit').addEventListener('click', () => { if (grafoSel != null) openModal(grafoSel); });
+
+  // Re-render + encuadre al abrir la pestaña (recién ahí el contenedor tiene tamaño)
+  const grafoTab = document.querySelector('.tab[data-tab="grafo"]');
+  if (grafoTab) grafoTab.addEventListener('click', () => { grafoFitted = false; renderGrafo(); });
+
+  // Doble clic / doble tap → editar
+  host.addEventListener('dblclick', e => {
+    const g = e.target.closest('.gnode');
+    if (g) openModal(parseInt(g.dataset.codigo, 10));
+  });
+
+  // Pan + zoom + pinch con pointer events
+  const pointers = new Map();
+  let last = null, pinchPrev = 0, moved = false, downCod = null;
+
+  host.addEventListener('pointerdown', e => {
+    const g = e.target.closest('.gnode');
+    downCod = g ? parseInt(g.dataset.codigo, 10) : null;
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    try { host.setPointerCapture(e.pointerId); } catch {}
+    moved = false;
+    if (pointers.size === 1) last = { x: e.clientX, y: e.clientY };
+    else if (pointers.size === 2) pinchPrev = 0;
+  });
+
+  host.addEventListener('pointermove', e => {
+    if (!pointers.has(e.pointerId)) return;
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pointers.size === 1 && last) {
+      const dx = e.clientX - last.x, dy = e.clientY - last.y;
+      if (Math.abs(dx) + Math.abs(dy) > 3) moved = true;
+      grafoView.tx += dx; grafoView.ty += dy;
+      last = { x: e.clientX, y: e.clientY };
+      applyGrafoTransform();
+    } else if (pointers.size === 2) {
+      const pts = [...pointers.values()];
+      const d = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+      const rect = host.getBoundingClientRect();
+      const mx = (pts[0].x + pts[1].x) / 2 - rect.left;
+      const my = (pts[0].y + pts[1].y) / 2 - rect.top;
+      if (pinchPrev) zoomAround(d / pinchPrev, mx, my);
+      pinchPrev = d; moved = true;
+    }
+  });
+
+  function endPointer(e) {
+    if (pointers.has(e.pointerId)) pointers.delete(e.pointerId);
+    if (pointers.size < 2) pinchPrev = 0;
+    if (pointers.size === 0) {
+      if (!moved && downCod != null) toggleSelectGrafo(downCod);
+      else if (!moved && downCod == null) deselectGrafo();
+      last = null;
+    }
+  }
+  host.addEventListener('pointerup', endPointer);
+  host.addEventListener('pointercancel', endPointer);
+
+  host.addEventListener('wheel', e => {
+    e.preventDefault();
+    const rect = host.getBoundingClientRect();
+    zoomAround(e.deltaY < 0 ? 1.12 : 1 / 1.12, e.clientX - rect.left, e.clientY - rect.top);
+  }, { passive: false });
+}
+
+/* ════════════════════════════════════════════════════════
    Entrar a la app (tras login)
    ════════════════════════════════════════════════════════ */
 let appInicializada = false;
@@ -758,6 +1036,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   initModal();
   initPlanControls();
   initHistorialControls();
+  initGrafo();
   initLoginScreen();
 
   // Reaccionar a cambios de sesión (login, logout, refresh de token)
