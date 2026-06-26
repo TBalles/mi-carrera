@@ -543,15 +543,25 @@ button { font-family: inherit; cursor: pointer; }
 .grafo {
   position: absolute; inset: 0;
   touch-action: none; cursor: grab;
+  -webkit-user-select: none; -moz-user-select: none; user-select: none;
+  -webkit-touch-callout: none;
 }
 .grafo:active { cursor: grabbing; }
 #grafo-svg { display: block; font-family: 'Inter', system-ui, sans-serif; }
+#grafo-svg text { -webkit-user-select: none; user-select: none; }
 #grafo-viewport { transition: transform .05s linear; }
 
 /* Aristas */
-.gedge { fill: none; stroke: var(--line-strong); stroke-width: 1.6; opacity: .45; transition: stroke .25s var(--ease), opacity .25s var(--ease); }
-.gedges.dim .gedge { opacity: .07; }
-.gedge.is-chain { stroke: var(--accent); opacity: .95; stroke-width: 2.2; }
+.gedge { fill: none; stroke: var(--line-strong); stroke-width: 1.6; opacity: .45; transition: stroke .25s var(--ease), opacity .25s var(--ease), stroke-width .25s var(--ease); }
+.gedges.dim .gedge { opacity: .06; }
+.gedge.is-chain {
+  stroke: var(--accent); opacity: 1; stroke-width: 3;
+  filter: drop-shadow(0 0 5px color-mix(in srgb, var(--accent) 70%, transparent));
+}
+.gedge.is-chain.is-blocked {
+  stroke: #ef4444;
+  filter: drop-shadow(0 0 6px rgba(239,68,68,.7));
+}
 
 /* Etiquetas de columna */
 .gcol-label { text-anchor: middle; fill: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
@@ -582,9 +592,17 @@ button { font-family: inherit; cursor: pointer; }
 .gnode--bloqueada  { opacity: .62; }
 
 /* Selección / cadena resaltada */
-.gnodes.dim .gnode:not(.is-sel):not(.is-chain) { opacity: .16; }
-.gnode.is-sel rect { stroke-width: 3.2; }
-.gnode.is-sel rect, .gnode.is-chain rect { filter: drop-shadow(0 4px 12px rgba(0,0,0,.4)); }
+.gnodes.dim .gnode:not(.is-sel):not(.is-chain) { opacity: .14; }
+.gnode.is-sel rect { stroke-width: 3.4; }
+.gnode.is-sel rect, .gnode.is-chain rect { filter: drop-shadow(0 4px 14px rgba(0,0,0,.5)); }
+
+/* En la trazabilidad, las materias que todavía no podés cursar van en rojo */
+.gnodes.dim .gnode.is-chain.gnode--bloqueada { opacity: 1; }
+.gnodes.dim .gnode.is-chain.gnode--bloqueada rect {
+  fill: rgba(239,68,68,.18); stroke: #ef4444; stroke-width: 2.4;
+  filter: drop-shadow(0 0 8px rgba(239,68,68,.45));
+}
+.gnodes.dim .gnode.is-chain.gnode--bloqueada .gnode-dot { fill: #ef4444; }
 
 /* Controles flotantes */
 .grafo-controls {
