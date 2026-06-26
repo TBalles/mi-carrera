@@ -7,15 +7,153 @@ let planData = [];
 let correlativas = {};
 let customEstados = {};
 let customNotas = {};
+let historialData = [];
 let statusChart = null;
+let currentUser = null;          // objeto user de Supabase
 
-const STORE_ESTADOS  = 'plan.customEstados.v2';
-const STORE_NOTAS    = 'plan.customNotas.v1';
-const STORE_HISTORIAL = 'plan.historial.v2';
-const STORE_THEME    = 'plan.theme.v1';
+const STORE_THEME = 'plan.theme.v1';
 
 const CICLO    = ['no cursada', 'cursando', 'pendiente de final', 'aprobada'];
 const HABILITA = new Set(['aprobada', 'pendiente de final']);
+
+/* ════════════════════════════════════════════════════════
+   Persistencia en Supabase (nube, por usuario)
+   ════════════════════════════════════════════════════════ */
+async function loadUserData() {
+  customEstados = {};
+  customNotas = {};
+  historialData = null;
+  const { data, error } = await supabaseClient
+    .from('user_data').select('key,value').eq('user_id', currentUser.id);
+  if (error) { console.error('Error cargando datos:', error); return; }
+  for (const row of data || []) {
+    if (row.key === 'estados')   customEstados = row.value || {};
+    else if (row.key === 'notas')    customNotas = row.value || {};
+    else if (row.key === 'historial') historialData = row.value || [];
+  }
+}
+
+const _saveTimers = {};
+function saveData(key, value) {
+  // Debounce por clave para no spamear la API en cada tecla
+  clearTimeout(_saveTimers[key]);
+  _saveTimers[key] = setTimeout(async () => {
+    const { error } = await supabaseClient.from('user_data').upsert({
+      user_id: currentUser.id, key, value, updated_at: new Date().toISOString(),
+    }, { onConflict: 'user_id,key' });
+    if (error) console.error(`Error guardando ${key}:`, error);
+  }, 500);
+}
+
+// Migra datos del localStorage viejo (versión sin nube) a la cuenta, una sola vez
+async function migrarLocalStorageSiHace() {
+  const oldEstados   = safeParse(localStorage.getItem('plan.customEstados.v2'));
+  const oldNotas     = safeParse(localStorage.getItem('plan.customNotas.v1'));
+  const oldHistorial = safeParse(localStorage.getItem('plan.historial.v2'));
+  const sinDatosEnNube = !Object.keys(customEstados).length
+    && !Object.keys(customNotas).length
+    && (!historialData || !historialData.length);
+  if (!sinDatosEnNube) return;
+
+  let migrado = false;
+  if (oldEstados && Object.keys(oldEstados).length)   { customEstados = oldEstados; saveData('estados', customEstados); migrado = true; }
+  if (oldNotas && Object.keys(oldNotas).length)       { customNotas = oldNotas; saveData('notas', customNotas); migrado = true; }
+  if (oldHistorial && oldHistorial.length)            { historialData = oldHistorial; saveData('historial', historialData); migrado = true; }
+  if (migrado) console.info('Datos locales migrados a tu cuenta en la nube.');
+}
+
+function safeParse(s) { try { return JSON.parse(s); } catch { return null; } }
+
+/* ════════════════════════════════════════════════════════
+   Autenticación
+   ════════════════════════════════════════════════════════ */
+let authMode = 'login'; // 'login' | 'register'
+
+function showLogin() {
+  document.getElementById('login-screen').classList.add('visible');
+  document.getElementById('app').classList.remove('visible');
+  setAuthError('');
+  setAuthMode('login');
+  setTimeout(() => document.getElementById('login-email').focus(), 80);
+}
+
+function hideLogin() {
+  document.getElementById('login-screen').classList.remove('visible');
+  document.getElementById('app').classList.add('visible');
+  document.getElementById('user-chip').textContent = currentUser?.email || '';
+}
+
+function setAuthMode(mode) {
+  authMode = mode;
+  document.getElementById('login-title').textContent  = mode === 'login' ? 'Iniciar sesión' : 'Crear cuenta';
+  document.getElementById('login-submit').textContent = mode === 'login' ? 'Entrar' : 'Registrarse';
+  document.getElementById('switch-text').textContent  = mode === 'login' ? '¿No tenés cuenta?' : '¿Ya tenés cuenta?';
+  document.getElementById('switch-btn').textContent   = mode === 'login' ? 'Registrarse' : 'Iniciar sesión';
+  setAuthError('');
+  setAuthInfo('');
+}
+
+function setAuthError(msg) {
+  const el = document.getElementById('login-error');
+  el.textContent = msg; el.style.display = msg ? 'block' : 'none';
+}
+function setAuthInfo(msg) {
+  const el = document.getElementById('login-info');
+  el.textContent = msg; el.style.display = msg ? 'block' : 'none';
+}
+
+function initLoginScreen() {
+  document.getElementById('switch-btn').addEventListener('click', () =>
+    setAuthMode(authMode === 'login' ? 'register' : 'login'));
+
+  document.getElementById('login-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const email = document.getElementById('login-email').value.trim();
+    const pass  = document.getElementById('login-pass').value;
+    const btn   = document.getElementById('login-submit');
+    setAuthError(''); setAuthInfo('');
+
+    if (!email) { setAuthError('Ingresá tu email.'); return; }
+    if (pass.length < 6) { setAuthError('La contraseña debe tener al menos 6 caracteres.'); return; }
+
+    btn.disabled = true;
+    const txtPrev = btn.textContent;
+    btn.textContent = '…';
+
+    if (authMode === 'login') {
+      const { error } = await supabaseClient.auth.signInWithPassword({ email, password: pass });
+      if (error) {
+        setAuthError(traducirError(error.message));
+        btn.disabled = false; btn.textContent = txtPrev;
+      }
+      // si OK, onAuthStateChange se encarga de entrar
+    } else {
+      const { data, error } = await supabaseClient.auth.signUp({ email, password: pass });
+      if (error) {
+        setAuthError(traducirError(error.message));
+        btn.disabled = false; btn.textContent = txtPrev;
+      } else if (!data.session) {
+        // Falta confirmar email (si la confirmación está activada en Supabase)
+        setAuthInfo('Te enviamos un email para confirmar tu cuenta. Confirmalo y volvé a iniciar sesión.');
+        setAuthMode('login');
+        btn.disabled = false; btn.textContent = 'Entrar';
+      }
+      // si hay session, onAuthStateChange entra directo
+    }
+  });
+}
+
+function traducirError(msg) {
+  if (/invalid login credentials/i.test(msg)) return 'Email o contraseña incorrectos.';
+  if (/user already registered/i.test(msg))   return 'Ese email ya está registrado.';
+  if (/email/i.test(msg) && /valid/i.test(msg)) return 'Ingresá un email válido.';
+  return msg;
+}
+
+async function logout() {
+  await supabaseClient.auth.signOut();
+  // onAuthStateChange muestra el login
+}
 
 /* ════════════════════════════════════════════════════════
    Tema (oscuro / claro)
@@ -27,12 +165,14 @@ function applyTheme(theme) {
   if (btn) btn.textContent = theme === 'light' ? '☀' : '☾';
 }
 function initTheme() {
-  const saved = localStorage.getItem(STORE_THEME) || 'dark';
-  applyTheme(saved);
+  applyTheme(localStorage.getItem(STORE_THEME) || 'dark');
   document.getElementById('theme-toggle').addEventListener('click', () => {
     const now = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
     localStorage.setItem(STORE_THEME, now);
     applyTheme(now);
+  });
+  document.getElementById('logout-btn').addEventListener('click', () => {
+    if (confirm('¿Cerrar sesión?')) logout();
   });
 }
 
@@ -50,28 +190,15 @@ function initTabs() {
 }
 
 /* ════════════════════════════════════════════════════════
-   Carga y cálculo del plan
+   Cálculo del plan
    ════════════════════════════════════════════════════════ */
-function loadStore(key) {
-  try { return JSON.parse(localStorage.getItem(key)) || {}; }
-  catch { return {}; }
-}
-function loadCustomEstados() { customEstados = loadStore(STORE_ESTADOS); }
-function saveCustomEstados() { localStorage.setItem(STORE_ESTADOS, JSON.stringify(customEstados)); }
-function loadCustomNotas()   { customNotas   = loadStore(STORE_NOTAS); }
-function saveCustomNotas()   { localStorage.setItem(STORE_NOTAS, JSON.stringify(customNotas)); }
-
 function condicionToEstado(condicion) {
   if (condicion === 'Aprobada') return 'aprobada';
   if (condicion === 'Cursada')  return 'cursando';
   return 'no cursada';
 }
-function baseEstado(item) {
-  return customEstados[item.codigo] || condicionToEstado(item.condicion);
-}
-function baseNota(item) {
-  return (item.codigo in customNotas) ? customNotas[item.codigo] : (item.nota || 0);
-}
+function baseEstado(item) { return customEstados[item.codigo] || condicionToEstado(item.condicion); }
+function baseNota(item)   { return (item.codigo in customNotas) ? customNotas[item.codigo] : (item.nota || 0); }
 
 function recalcular() {
   const estadoPorCodigo = {};
@@ -105,8 +232,6 @@ async function loadPlan() {
   ]);
   planData     = plan;
   correlativas = corr;
-  loadCustomEstados();
-  loadCustomNotas();
   planData.forEach(i => { i.estado = baseEstado(i); i.nota = baseNota(i); });
   recalcular();
   renderAll();
@@ -118,7 +243,7 @@ function setEstado(codigo, nuevo) {
   item.estado = nuevo;
   if (nuevo === condicionToEstado(item.condicion)) delete customEstados[codigo];
   else customEstados[codigo] = nuevo;
-  saveCustomEstados();
+  saveData('estados', customEstados);
   recalcular();
   renderAll();
 }
@@ -129,7 +254,7 @@ function setNota(codigo, nota) {
   item.nota = nota;
   if (!nota) delete customNotas[codigo];
   else customNotas[codigo] = nota;
-  saveCustomNotas();
+  saveData('notas', customNotas);
   renderAll();
 }
 
@@ -417,18 +542,13 @@ const COLS = [
   { key: 'tercerIntento',  label: '3º Final' },
 ];
 
-let historialData = [];
-
 function nuevaMateria() {
   return { materia: '', primerParcial: '', segundoParcial: '', recuperatorio: '', notaPromocion: '', segundoIntento: '', tercerIntento: '' };
 }
 
 async function loadHistorial() {
-  const saved = localStorage.getItem(STORE_HISTORIAL);
-  if (saved) {
-    try { historialData = JSON.parse(saved); }
-    catch { historialData = await fetchHistorialBase(); }
-  } else {
+  // historialData ya viene de loadUserData(); si está vacío, usar la base del Excel
+  if (!historialData || !historialData.length) {
     historialData = await fetchHistorialBase();
   }
   renderHistorial();
@@ -439,9 +559,7 @@ async function fetchHistorialBase() {
   catch { return []; }
 }
 
-function saveHistorial() {
-  localStorage.setItem(STORE_HISTORIAL, JSON.stringify(historialData));
-}
+function saveHistorial() { saveData('historial', historialData); }
 
 function notaClase(val) {
   const n = parseFloat(val);
@@ -568,14 +686,14 @@ function descargar(nombre, contenido) {
 }
 
 /* ════════════════════════════════════════════════════════
-   Init
+   Entrar a la app (tras login)
    ════════════════════════════════════════════════════════ */
-window.addEventListener('DOMContentLoaded', async () => {
-  initTheme();
-  initTabs();
-  initModal();
-  initPlanControls();
-  initHistorialControls();
+let appInicializada = false;
+
+async function enterApp() {
+  hideLogin();
+  await loadUserData();
+  await migrarLocalStorageSiHace();
   try {
     await loadPlan();
   } catch (err) {
@@ -584,4 +702,39 @@ window.addEventListener('DOMContentLoaded', async () => {
       '<p class="muted" style="padding:20px">No se pudo cargar el plan. Revisá la conexión.</p>';
   }
   await loadHistorial();
+  appInicializada = true;
+}
+
+/* ════════════════════════════════════════════════════════
+   Init global
+   ════════════════════════════════════════════════════════ */
+window.addEventListener('DOMContentLoaded', async () => {
+  initTheme();
+  initTabs();
+  initModal();
+  initPlanControls();
+  initHistorialControls();
+  initLoginScreen();
+
+  // Reaccionar a cambios de sesión (login, logout, refresh de token)
+  supabaseClient.auth.onAuthStateChange((event, session) => {
+    if (session?.user) {
+      currentUser = session.user;
+      if (event === 'SIGNED_IN' || (event === 'INITIAL_SESSION')) enterApp();
+    } else {
+      currentUser = null;
+      appInicializada = false;
+      if (statusChart) { statusChart.destroy(); statusChart = null; }
+      showLogin();
+    }
+  });
+
+  // Estado inicial por si onAuthStateChange no dispara INITIAL_SESSION
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if (session?.user) {
+    currentUser = session.user;
+    if (!appInicializada) enterApp();
+  } else {
+    showLogin();
+  }
 });
