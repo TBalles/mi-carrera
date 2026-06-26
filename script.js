@@ -19,13 +19,38 @@ const HABILITA = new Set(['aprobada', 'pendiente de final']);
 /* ════════════════════════════════════════════════════════
    Persistencia en Supabase (nube, por usuario)
    ════════════════════════════════════════════════════════ */
+// ¿El error indica que falta la tabla user_data en Supabase?
+function esTablaFaltante(error) {
+  if (!error) return false;
+  const txt = `${error.code || ''} ${error.message || ''}`.toLowerCase();
+  return error.code === '42P01'           // Postgres: relation does not exist
+      || error.code === 'PGRST205'        // PostgREST: tabla no encontrada en el schema
+      || txt.includes('user_data')
+      || txt.includes('does not exist')
+      || txt.includes('could not find the table');
+}
+
+function manejarErrorNube(error, contexto) {
+  console.error(`Error ${contexto}:`, error);
+  if (esTablaFaltante(error)) {
+    mostrarBanner(
+      '⚠️ Falta crear la tabla en Supabase. Tus cambios NO se están guardando. ' +
+      'Corré el archivo supabase-setup.sql en Supabase → SQL Editor (una sola vez).',
+      'error'
+    );
+  } else {
+    mostrarBanner('⚠️ No se pudieron sincronizar tus datos con la nube. Revisá tu conexión.', 'error');
+  }
+}
+
 async function loadUserData() {
   customEstados = {};
   customNotas = {};
   historialData = null;
   const { data, error } = await supabaseClient
     .from('user_data').select('key,value').eq('user_id', currentUser.id);
-  if (error) { console.error('Error cargando datos:', error); return; }
+  if (error) { manejarErrorNube(error, 'cargando datos'); return; }
+  ocultarBanner();
   for (const row of data || []) {
     if (row.key === 'estados')   customEstados = row.value || {};
     else if (row.key === 'notas')    customNotas = row.value || {};
@@ -41,8 +66,27 @@ function saveData(key, value) {
     const { error } = await supabaseClient.from('user_data').upsert({
       user_id: currentUser.id, key, value, updated_at: new Date().toISOString(),
     }, { onConflict: 'user_id,key' });
-    if (error) console.error(`Error guardando ${key}:`, error);
+    if (error) manejarErrorNube(error, `guardando ${key}`);
+    else ocultarBanner();
   }, 500);
+}
+
+/* Banner de aviso (arriba de todo) */
+function mostrarBanner(msg, tipo) {
+  let el = document.getElementById('cloud-banner');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'cloud-banner';
+    el.className = 'cloud-banner';
+    document.body.appendChild(el);
+  }
+  el.textContent = msg;
+  el.classList.toggle('cloud-banner--error', tipo === 'error');
+  el.classList.add('visible');
+}
+function ocultarBanner() {
+  const el = document.getElementById('cloud-banner');
+  if (el) el.classList.remove('visible');
 }
 
 // Migra datos del localStorage viejo (versión sin nube) a la cuenta, una sola vez
