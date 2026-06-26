@@ -733,7 +733,30 @@ function descargar(nombre, contenido) {
 /* ════════════════════════════════════════════════════════
    Árbol / grafo de correlatividades
    ════════════════════════════════════════════════════════ */
-const GNODE_W = 168, GNODE_H = 48, GCOL_GAP = 74, GROW_GAP = 16, GMARGIN = 30, GHEAD = 30;
+const GNODE_W = 210, GNODE_H = 58, GCOL_GAP = 72, GROW_GAP = 16, GMARGIN = 30, GHEAD = 30;
+const GNAME_MAXCHARS = 27, GNAME_MAXLINES = 2;
+
+// Parte el nombre en hasta N líneas para que entre completo en el nodo
+function wrapName(name, maxChars = GNAME_MAXCHARS, maxLines = GNAME_MAXLINES) {
+  const words = String(name).split(/\s+/);
+  const lines = [];
+  let cur = '';
+  for (let i = 0; i < words.length; i++) {
+    const w = words[i];
+    const trial = cur ? cur + ' ' + w : w;
+    if (trial.length <= maxChars || !cur) {
+      cur = trial;
+    } else {
+      lines.push(cur);
+      if (lines.length === maxLines - 1) { cur = words.slice(i).join(' '); break; }
+      cur = w;
+    }
+  }
+  if (cur) lines.push(cur);
+  const last = lines[lines.length - 1];
+  if (last && last.length > maxChars) lines[lines.length - 1] = last.slice(0, maxChars - 1) + '…';
+  return lines;
+}
 
 let grafoView = { tx: 0, ty: 0, s: 1 };
 let grafoFitted = false;
@@ -835,14 +858,19 @@ function renderGrafo() {
   let gnodes = '';
   nodes.forEach(({ x, y, item }) => {
     const st = displayStatus(item);
-    const nombre = item.materia.length > 24 ? item.materia.slice(0, 23) + '…' : item.materia;
+    const tx = x + 28;
+    const lines = wrapName(item.materia);
+    const baseY = lines.length === 1 ? y + 39 : y + 34;
+    const nameSvg = lines.map((ln, i) =>
+      `<text class="gnode-name" x="${tx}" y="${baseY + i * 15}">${escAttr(ln)}</text>`
+    ).join('');
     const nota = (item.estado === 'aprobada' && item.nota > 0)
-      ? `<text class="gnode-nota" x="${x + GNODE_W - 12}" y="${y + GNODE_H / 2 + 4}">${item.nota}</text>` : '';
+      ? `<text class="gnode-nota" x="${x + GNODE_W - 12}" y="${y + 19}">${item.nota}</text>` : '';
     gnodes += `<g class="gnode gnode--${st}" data-codigo="${item.codigo}">
-      <rect x="${x}" y="${y}" width="${GNODE_W}" height="${GNODE_H}" rx="12"/>
-      <circle class="gnode-dot" cx="${x + 14}" cy="${y + GNODE_H / 2}" r="4.5"/>
-      <text class="gnode-code" x="${x + 26}" y="${y + 19}">${item.codigo}</text>
-      <text class="gnode-name" x="${x + 26}" y="${y + 35}">${escAttr(nombre)}</text>
+      <rect x="${x}" y="${y}" width="${GNODE_W}" height="${GNODE_H}" rx="13"/>
+      <circle class="gnode-dot" cx="${x + 15}" cy="${y + GNODE_H / 2}" r="4.5"/>
+      <text class="gnode-code" x="${tx}" y="${y + 19}">${item.codigo}</text>
+      ${nameSvg}
       ${nota}
     </g>`;
   });
@@ -919,9 +947,10 @@ function applyGrafoSelection() {
   const gedges = document.querySelector('.gedges');
   if (!gnodes || !gedges) return;
   gnodes.querySelectorAll('.gnode').forEach(n => n.classList.remove('is-sel', 'is-chain'));
-  gedges.querySelectorAll('.gedge').forEach(e => e.classList.remove('is-chain'));
+  gedges.querySelectorAll('.gedge').forEach(e => e.classList.remove('is-chain', 'is-blocked'));
   if (grafoSel == null) { gnodes.classList.remove('dim'); gedges.classList.remove('dim'); return; }
   const chain = new Set([grafoSel, ...ancestorsOf(grafoSel), ...descendantsOf(grafoSel)]);
+  const bloqueadas = new Set(planData.filter(i => displayStatus(i) === 'bloqueada').map(i => i.codigo));
   gnodes.classList.add('dim'); gedges.classList.add('dim');
   gnodes.querySelectorAll('.gnode').forEach(n => {
     const c = parseInt(n.dataset.codigo, 10);
@@ -929,8 +958,12 @@ function applyGrafoSelection() {
     else if (chain.has(c)) n.classList.add('is-chain');
   });
   gedges.querySelectorAll('.gedge').forEach(e => {
-    if (chain.has(parseInt(e.dataset.from, 10)) && chain.has(parseInt(e.dataset.to, 10)))
+    const f = parseInt(e.dataset.from, 10), t = parseInt(e.dataset.to, 10);
+    if (chain.has(f) && chain.has(t)) {
       e.classList.add('is-chain');
+      // Si conecta una materia que todavía no podés cursar, marcarla en rojo
+      if (bloqueadas.has(f) || bloqueadas.has(t)) e.classList.add('is-blocked');
+    }
   });
 }
 
