@@ -262,8 +262,10 @@ function condicionToEstado(condicion) {
   if (condicion === 'Cursada')  return 'cursando';
   return 'no cursada';
 }
-function baseEstado(item) { return customEstados[item.codigo] || condicionToEstado(item.condicion); }
-function baseNota(item)   { return (item.codigo in customNotas) ? customNotas[item.codigo] : (item.nota || 0); }
+// Estado inicial para TODOS = 0% (no cursada / sin nota). Lo del Excel solo
+// se usa para el seed inicial de la cuenta original (ver seedUsuarioOriginal).
+function baseEstado(item) { return customEstados[item.codigo] || 'no cursada'; }
+function baseNota(item)   { return (item.codigo in customNotas) ? customNotas[item.codigo] : 0; }
 
 function recalcular() {
   const estadoPorCodigo = {};
@@ -290,6 +292,53 @@ async function fetchJSON(url) {
   return JSON.parse(text.replace(/^﻿/, ''));
 }
 
+/* Seed de una sola vez para la cuenta original: vuelca los datos del Excel
+   (condición y notas del plan.json + historial.json) a la nube, sin pisar
+   nada que ya esté cargado. Para el resto de los usuarios no hace nada. */
+const SEED_EMAIL = 'tomasballesteros12@gmail.com';
+const SEED_FLAG  = 'seed_excel_v1';
+
+async function upsertDirecto(key, value) {
+  try {
+    const { error } = await supabaseClient.from('user_data').upsert({
+      user_id: currentUser.id, key, value, updated_at: new Date().toISOString(),
+    }, { onConflict: 'user_id,key' });
+    return !error;
+  } catch { return false; }
+}
+
+async function seedUsuarioOriginal() {
+  if (!currentUser || (currentUser.email || '').toLowerCase() !== SEED_EMAIL) return;
+  // ¿ya se hizo el seed?
+  try {
+    const { data } = await supabaseClient.from('user_data')
+      .select('key').eq('user_id', currentUser.id).eq('key', SEED_FLAG).limit(1);
+    if (Array.isArray(data) && data.length) return;
+  } catch { return; }   // si no se puede verificar, no arriesgar
+
+  // Rellenar SOLO lo que falte (no pisa overrides ya guardados en la nube)
+  let nEstados = 0, nNotas = 0;
+  planData.forEach(it => {
+    if (!(it.codigo in customEstados)) {
+      const est = condicionToEstado(it.condicion);
+      if (est !== 'no cursada') { customEstados[it.codigo] = est; nEstados++; }
+    }
+    if (!(it.codigo in customNotas) && it.nota > 0) { customNotas[it.codigo] = it.nota; nNotas++; }
+  });
+  let histSeed = false;
+  if (!Array.isArray(historialData) || !historialData.length) {
+    const base = await fetchHistorialBase();
+    if (base && base.length) { historialData = base; histSeed = true; }
+  }
+
+  // Guardar de forma directa (sin debounce) y recién ahí marcar el flag
+  let ok = true;
+  if (nEstados) ok = (await upsertDirecto('estados', customEstados)) && ok;
+  if (nNotas)   ok = (await upsertDirecto('notas', customNotas)) && ok;
+  if (histSeed) ok = (await upsertDirecto('historial', historialData)) && ok;
+  if (ok) { await upsertDirecto(SEED_FLAG, true); console.info('Seed inicial de la cuenta completado.'); }
+}
+
 async function loadPlan() {
   const [plan, corr] = await Promise.all([
     fetchJSON('plan.json'),
@@ -297,6 +346,7 @@ async function loadPlan() {
   ]);
   planData     = plan;
   correlativas = corr;
+  await seedUsuarioOriginal();   // una sola vez para la cuenta original
   planData.forEach(i => { i.estado = baseEstado(i); i.nota = baseNota(i); });
   recalcular();
   renderAll();
@@ -306,7 +356,7 @@ function setEstado(codigo, nuevo) {
   const item = planData.find(i => i.codigo === codigo);
   if (!item) return;
   item.estado = nuevo;
-  if (nuevo === condicionToEstado(item.condicion)) delete customEstados[codigo];
+  if (nuevo === 'no cursada') delete customEstados[codigo];   // 'no cursada' es el default → no hace falta guardarlo
   else customEstados[codigo] = nuevo;
   saveData('estados', customEstados);
   recalcular();
@@ -630,10 +680,8 @@ function nuevaMateria() {
 }
 
 async function loadHistorial() {
-  // historialData ya viene de loadUserData(); si está vacío, usar la base del Excel
-  if (!historialData || !historialData.length) {
-    historialData = await fetchHistorialBase();
-  }
+  // historialData ya viene de loadUserData() (nube). Por defecto, vacío.
+  if (!Array.isArray(historialData)) historialData = [];
   renderHistorial();
 }
 
@@ -747,9 +795,9 @@ function initHistorialControls() {
   document.getElementById('export-historial').addEventListener('click', () => {
     descargar('historial_notas.json', JSON.stringify(historialData, null, 2));
   });
-  document.getElementById('reset-historial').addEventListener('click', async () => {
-    if (confirm('Esto descarta tus cambios y restaura el historial original del Excel. ¿Continuar?')) {
-      historialData = await fetchHistorialBase(); saveHistorial(); renderHistorial();
+  document.getElementById('reset-historial').addEventListener('click', () => {
+    if (confirm('¿Vaciar todo el historial de notas? Esta acción no se puede deshacer.')) {
+      historialData = []; saveHistorial(); renderHistorial();
     }
   });
 }
