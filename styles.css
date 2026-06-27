@@ -687,6 +687,9 @@ button { font-family: inherit; cursor: pointer; }
   overflow: hidden;
 }
 .plan-sem--next { border-color: color-mix(in srgb, var(--accent) 55%, transparent); box-shadow: var(--shadow), 0 0 0 1px var(--accent-soft), var(--glass-hi); }
+.plan-sem--actual { border-color: color-mix(in srgb, var(--cursando) 55%, transparent); box-shadow: var(--shadow), 0 0 0 1px var(--cursando-bg), var(--glass-hi); }
+.plan-sem--actual .plan-sem__head { background: linear-gradient(90deg, var(--cursando-bg), transparent); }
+.plan-sem--actual .plan-sem__n { color: var(--cursando); }
 .plan-sem__head {
   display: flex; align-items: center; justify-content: space-between; gap: 10px;
   padding: 12px 18px; border-bottom: 1px solid var(--line);

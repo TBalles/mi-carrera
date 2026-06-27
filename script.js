@@ -1154,6 +1154,16 @@ function computePlan(perSem, startCuatri) {
   const semestres = [];
   let cuatri = startCuatri;
   let guard = 0;
+
+  // Cuatrimestre actual = las materias en estado "cursando" (van fijas primero).
+  // Al terminarlo, habilitan correlativas para lo que sigue.
+  const cursando = pendientes.filter(it => it.estado === 'cursando');
+  if (cursando.length) {
+    semestres.push({ cuatri, materias: cursando, actual: true });
+    cursando.forEach(it => { scheduled.add(it.codigo); done.add(it.codigo); });
+    cuatri = (cuatri === '1°C') ? '2°C' : '1°C';
+  }
+
   while (scheduled.size < pendientes.length && guard < 60) {
     guard++;
     const elegibles = pendientes.filter(it =>
@@ -1197,23 +1207,24 @@ function renderPlanificador() {
 
   let html = '';
   let real = 0;
+  let proxMarcado = false;
   semestres.forEach(s => {
     if (!s.materias.length) return;
     real++;
-    const next = real === 1 ? ' plan-sem--next' : '';
+    let cls = '', tag = '';
+    if (s.actual) { cls = ' plan-sem--actual'; tag = ' · en curso'; }
+    else if (!proxMarcado) { cls = ' plan-sem--next'; tag = ' · próximo'; proxMarcado = true; }
     const chips = s.materias.map(it => {
-      const enCurso = it.estado === 'cursando' ? '<span class="plan-chip__tag">cursando</span>' : '';
       return `<div class="plan-chip" data-codigo="${it.codigo}" title="${escAttr(it.materia)}">
         <span class="plan-chip__code">${it.codigo}</span>
         <span class="plan-chip__name">${escAttr(it.materia)}</span>
         <span class="plan-chip__anio">${it.cuatri === 'Transversal' ? 'Trans.' : it.anio + '°'}</span>
-        ${enCurso}
       </div>`;
     }).join('');
     html += `
-      <div class="plan-sem${next}">
+      <div class="plan-sem${cls}">
         <div class="plan-sem__head">
-          <span class="plan-sem__n">Cuatrimestre ${real}${real === 1 ? ' · próximo' : ''}</span>
+          <span class="plan-sem__n">Cuatrimestre ${real}${tag}</span>
           <span class="plan-sem__cuatri">${s.cuatri} · ${s.materias.length} materia${s.materias.length > 1 ? 's' : ''}</span>
         </div>
         <div class="plan-sem__list">${chips}</div>
