@@ -658,6 +658,67 @@ button { font-family: inherit; cursor: pointer; }
   .grafo-wrap { height: 68vh; }
 }
 
+/* ── Planificador ───────────────────────────────── */
+.plan-ctrl { display: flex; flex-direction: column; gap: 4px; font-size: .72rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+.plan-ctrl input, .plan-ctrl select {
+  padding: 9px 12px; border-radius: 11px; border: 1px solid var(--line);
+  background: var(--card-soft); color: var(--ink); font-size: .9rem; font-weight: 600; font-family: inherit; outline: none;
+}
+.plan-ctrl input { width: 90px; }
+.plan-ctrl input:focus, .plan-ctrl select:focus { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+
+.plan-summary { margin-bottom: 20px; }
+.plan-card-sum {
+  display: flex; gap: 36px; flex-wrap: wrap;
+  background: var(--card); border: 1px solid var(--line);
+  -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur);
+  border-radius: var(--radius); box-shadow: var(--shadow), var(--glass-hi);
+  padding: 20px 24px;
+}
+.plan-card-sum > div { display: flex; flex-direction: column; }
+.plan-big { font-size: 1.9rem; font-weight: 800; color: var(--accent); line-height: 1.1; }
+.plan-sub { font-size: .82rem; color: var(--muted); font-weight: 500; }
+
+.plan-output { display: grid; gap: 14px; }
+.plan-sem {
+  background: var(--card); border: 1px solid var(--line);
+  -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur);
+  border-radius: var(--radius); box-shadow: var(--shadow), var(--glass-hi);
+  overflow: hidden;
+}
+.plan-sem--next { border-color: color-mix(in srgb, var(--accent) 55%, transparent); box-shadow: var(--shadow), 0 0 0 1px var(--accent-soft), var(--glass-hi); }
+.plan-sem__head {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 12px 18px; border-bottom: 1px solid var(--line);
+  background: linear-gradient(90deg, var(--accent-soft), transparent);
+}
+.plan-sem__n { font-weight: 700; font-size: .95rem; }
+.plan-sem--next .plan-sem__n { color: var(--accent); }
+.plan-sem__cuatri { font-size: .78rem; color: var(--muted); font-weight: 600; }
+.plan-sem__list { display: flex; flex-wrap: wrap; gap: 8px; padding: 14px 18px; }
+
+.plan-chip {
+  position: relative; display: flex; align-items: center; gap: 8px;
+  padding: 8px 12px; border-radius: 11px;
+  border: 1px solid var(--line); background: var(--card-soft);
+  cursor: pointer; transition: transform .3s var(--ease-out), border-color .25s var(--ease), box-shadow .3s var(--ease-out);
+}
+.plan-chip:hover { transform: translateY(-2px); border-color: var(--accent); box-shadow: 0 8px 20px rgba(0,0,0,.35); }
+.plan-chip__code { font-size: .72rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.plan-chip__name { font-size: .86rem; font-weight: 500; }
+.plan-chip__anio { font-size: .68rem; font-weight: 700; color: var(--muted); background: rgba(255,255,255,.05); padding: 2px 7px; border-radius: 6px; }
+.plan-chip__tag { font-size: .64rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--cursando); background: var(--cursando-bg); padding: 2px 7px; border-radius: 6px; }
+
+.plan-warn {
+  background: rgba(245,158,11,.12); border: 1px solid rgba(245,158,11,.3);
+  color: var(--cursando); font-size: .85rem; padding: 12px 16px; border-radius: 12px;
+}
+
+@media (max-width: 560px) {
+  .plan-card-sum { gap: 20px; }
+  .plan-chip__name { font-size: .82rem; }
+}
+
 /* ── Footer ─────────────────────────────────────── */
 .foot {
   text-align: center; padding: 30px; color: var(--muted); font-size: .82rem;

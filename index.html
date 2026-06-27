@@ -61,6 +61,7 @@
           <nav class="tabs">
             <button class="tab tab--active" data-tab="plan">Plan de Estudios</button>
             <button class="tab" data-tab="grafo">Correlativas</button>
+            <button class="tab" data-tab="plan-opt">Planificador</button>
             <button class="tab" data-tab="historial">Historial de Notas</button>
           </nav>
           <span class="user-chip" id="user-chip"></span>
@@ -173,6 +174,29 @@
           </div>
           <div class="grafo-hint">Tocá un nodo para resaltar su cadena de correlativas · doble clic para editar</div>
         </div>
+      </section>
+
+      <!-- ============ TAB: PLANIFICADOR ============ -->
+      <section class="tabpanel" data-panel="plan-opt">
+        <div class="panel__head panel__head--page">
+          <div>
+            <h2>Planificador de cursada</h2>
+            <p class="muted">Te arma el camino más corto para recibirte respetando correlativas y la oferta por cuatrimestre. Usa tus materias cargadas; no incluye las aprobadas ni las que tenés en final.</p>
+          </div>
+          <div class="filters">
+            <label class="plan-ctrl">Materias por cuatrimestre
+              <input id="plan-per-sem" type="number" min="1" max="12" value="6">
+            </label>
+            <label class="plan-ctrl">Arranca en
+              <select id="plan-start">
+                <option value="1°C">1° cuatrimestre</option>
+                <option value="2°C">2° cuatrimestre</option>
+              </select>
+            </label>
+          </div>
+        </div>
+        <div id="plan-summary" class="plan-summary"></div>
+        <div id="plan-output" class="plan-output"></div>
       </section>
 
       <!-- ============ TAB: HISTORIAL ============ -->

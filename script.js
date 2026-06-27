@@ -381,6 +381,7 @@ function renderAll() {
   renderMalla();
   renderTable();
   renderGrafo();
+  renderPlanificador();
 }
 
 function getStats() {
@@ -1127,6 +1128,116 @@ function initGrafo() {
 }
 
 /* ════════════════════════════════════════════════════════
+   Planificador de cursada (camino más corto para recibirse)
+   ════════════════════════════════════════════════════════ */
+// Una materia ya "no hay que cursarla" si está aprobada o pendiente de final
+function planMateriaHecha(item) { return item.estado === 'aprobada' || item.estado === 'pendiente de final'; }
+
+function computePlan(perSem, startCuatri) {
+  if (!dependentsOf) buildDependents();
+  const pendientes = planData.filter(i => !planMateriaHecha(i));
+  const done = new Set(planData.filter(planMateriaHecha).map(i => i.codigo));
+
+  // Camino crítico: largo de la cadena de dependientes pendientes (incluyéndose)
+  const memo = {};
+  function cpl(cod) {
+    if (memo[cod] != null) return memo[cod];
+    let best = 1;
+    (dependentsOf[cod] || []).forEach(dep => {
+      const d = planData.find(i => i.codigo === dep);
+      if (d && !planMateriaHecha(d)) best = Math.max(best, 1 + cpl(dep));
+    });
+    return (memo[cod] = best);
+  }
+
+  const scheduled = new Set();
+  const semestres = [];
+  let cuatri = startCuatri;
+  let guard = 0;
+  while (scheduled.size < pendientes.length && guard < 60) {
+    guard++;
+    const elegibles = pendientes.filter(it =>
+      !scheduled.has(it.codigo) &&
+      (it.cuatri === cuatri || it.cuatri === 'Transversal') &&
+      (correlativas[it.codigo] || []).every(p => done.has(p))
+    );
+    elegibles.sort((a, b) => cpl(b.codigo) - cpl(a.codigo) || a.anio - b.anio || a.codigo - b.codigo);
+    const tomar = elegibles.slice(0, perSem);
+    semestres.push({ cuatri, materias: tomar });
+    tomar.forEach(it => { scheduled.add(it.codigo); done.add(it.codigo); });
+    cuatri = (cuatri === '1°C') ? '2°C' : '1°C';
+  }
+  while (semestres.length && !semestres[semestres.length - 1].materias.length) semestres.pop();
+  const noProgramadas = pendientes.filter(it => !scheduled.has(it.codigo));
+  return { semestres, noProgramadas, totalPendientes: pendientes.length };
+}
+
+function renderPlanificador() {
+  const out = document.getElementById('plan-output');
+  const sum = document.getElementById('plan-summary');
+  if (!out || !sum || !planData.length) return;
+
+  const perSem = Math.max(1, Math.min(12, parseInt(document.getElementById('plan-per-sem').value, 10) || 6));
+  const startCuatri = document.getElementById('plan-start').value === '2°C' ? '2°C' : '1°C';
+  const { semestres, noProgramadas, totalPendientes } = computePlan(perSem, startCuatri);
+
+  if (!totalPendientes) {
+    sum.innerHTML = `<div class="plan-card-sum"><span class="plan-big">🎉 ¡Listo!</span><span class="plan-sub">No te quedan materias por cursar.</span></div>`;
+    out.innerHTML = '';
+    return;
+  }
+
+  const nCuatri = semestres.filter(s => s.materias.length).length;
+  const anios = (nCuatri / 2);
+  sum.innerHTML = `
+    <div class="plan-card-sum">
+      <div><span class="plan-big">${totalPendientes}</span><span class="plan-sub">materias por cursar</span></div>
+      <div><span class="plan-big">${nCuatri}</span><span class="plan-sub">cuatrimestres (~${anios % 1 ? anios.toFixed(1) : anios} años)</span></div>
+    </div>`;
+
+  let html = '';
+  let real = 0;
+  semestres.forEach(s => {
+    if (!s.materias.length) return;
+    real++;
+    const next = real === 1 ? ' plan-sem--next' : '';
+    const chips = s.materias.map(it => {
+      const enCurso = it.estado === 'cursando' ? '<span class="plan-chip__tag">cursando</span>' : '';
+      return `<div class="plan-chip" data-codigo="${it.codigo}" title="${escAttr(it.materia)}">
+        <span class="plan-chip__code">${it.codigo}</span>
+        <span class="plan-chip__name">${escAttr(it.materia)}</span>
+        <span class="plan-chip__anio">${it.cuatri === 'Transversal' ? 'Trans.' : it.anio + '°'}</span>
+        ${enCurso}
+      </div>`;
+    }).join('');
+    html += `
+      <div class="plan-sem${next}">
+        <div class="plan-sem__head">
+          <span class="plan-sem__n">Cuatrimestre ${real}${real === 1 ? ' · próximo' : ''}</span>
+          <span class="plan-sem__cuatri">${s.cuatri} · ${s.materias.length} materia${s.materias.length > 1 ? 's' : ''}</span>
+        </div>
+        <div class="plan-sem__list">${chips}</div>
+      </div>`;
+  });
+
+  if (noProgramadas.length) {
+    html += `<div class="plan-warn">No pude ubicar ${noProgramadas.length} materia(s) — puede haber correlativas inconsistentes: ${noProgramadas.map(i => i.codigo).join(', ')}</div>`;
+  }
+  out.innerHTML = html;
+
+  // Click en una materia del plan → abrir su editor
+  out.querySelectorAll('.plan-chip').forEach(el =>
+    el.addEventListener('click', () => openModal(parseInt(el.dataset.codigo, 10))));
+}
+
+function initPlanificador() {
+  const per = document.getElementById('plan-per-sem');
+  const start = document.getElementById('plan-start');
+  if (per) per.addEventListener('input', renderPlanificador);
+  if (start) start.addEventListener('change', renderPlanificador);
+}
+
+/* ════════════════════════════════════════════════════════
    Entrar a la app (tras login)
    ════════════════════════════════════════════════════════ */
 let appInicializada = false;
@@ -1156,6 +1267,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   initPlanControls();
   initHistorialControls();
   initGrafo();
+  initPlanificador();
   initTopbarAutohide();
   initLoginScreen();
 
