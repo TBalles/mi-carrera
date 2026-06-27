@@ -1,0 +1,3948 @@
+[
+  {
+    "codigo_materia": "0901",
+    "nombre": "INGLES NIVEL I",
+    "comisiones": [
+      {
+        "id": "1300",
+        "horarios": [
+          {
+            "dia": "LU",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "1600",
+        "horarios": [
+          {
+            "dia": "LU",
+            "inicio": "14:00",
+            "fin": "18:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "1900",
+        "horarios": [
+          {
+            "dia": "LU",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "2300",
+        "horarios": [
+          {
+            "dia": "MA",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "2600",
+        "horarios": [
+          {
+            "dia": "MA",
+            "inicio": "14:00",
+            "fin": "18:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "2900",
+        "horarios": [
+          {
+            "dia": "MA",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "3300",
+        "horarios": [
+          {
+            "dia": "MI",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "3600",
+        "horarios": [
+          {
+            "dia": "MI",
+            "inicio": "14:00",
+            "fin": "18:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "3900",
+        "horarios": [
+          {
+            "dia": "MI",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "4300",
+        "horarios": [
+          {
+            "dia": "JU",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "4600",
+        "horarios": [
+          {
+            "dia": "JU",
+            "inicio": "14:00",
+            "fin": "18:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "4900",
+        "horarios": [
+          {
+            "dia": "JU",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "5300",
+        "horarios": [
+          {
+            "dia": "VI",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "5600",
+        "horarios": [
+          {
+            "dia": "VI",
+            "inicio": "14:00",
+            "fin": "18:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "5900",
+        "horarios": [
+          {
+            "dia": "VI",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Recursantes"
+      },
+      {
+        "id": "5900",
+        "horarios": [
+          {
+            "dia": "VI",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "6300",
+        "horarios": [
+          {
+            "dia": "SA",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "7224",
+        "horarios": [
+          {
+            "dia": "MA",
+            "inicio": "12:00",
+            "fin": "16:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "7275",
+        "horarios": [
+          {
+            "dia": "MA",
+            "inicio": "12:00",
+            "fin": "14:00"
+          },
+          {
+            "dia": "VI",
+            "inicio": "12:00",
+            "fin": "14:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "7664",
+        "horarios": [
+          {
+            "dia": "SA",
+            "inicio": "12:00",
+            "fin": "16:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      }
+    ]
+  },
+  {
+    "codigo_materia": "0902",
+    "nombre": "INGLES NIVEL II",
+    "comisiones": [
+      {
+        "id": "1300",
+        "horarios": [
+          {
+            "dia": "LU",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "1600",
+        "horarios": [
+          {
+            "dia": "LU",
+            "inicio": "14:00",
+            "fin": "18:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "1900",
+        "horarios": [
+          {
+            "dia": "LU",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "2300",
+        "horarios": [
+          {
+            "dia": "MA",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "2600",
+        "horarios": [
+          {
+            "dia": "MA",
+            "inicio": "14:00",
+            "fin": "18:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "2900",
+        "horarios": [
+          {
+            "dia": "MA",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "3300",
+        "horarios": [
+          {
+            "dia": "MI",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "3600",
+        "horarios": [
+          {
+            "dia": "MI",
+            "inicio": "14:00",
+            "fin": "18:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "3900",
+        "horarios": [
+          {
+            "dia": "MI",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "4300",
+        "horarios": [
+          {
+            "dia": "JU",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "4600",
+        "horarios": [
+          {
+            "dia": "JU",
+            "inicio": "14:00",
+            "fin": "18:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "4900",
+        "horarios": [
+          {
+            "dia": "JU",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "5300",
+        "horarios": [
+          {
+            "dia": "VI",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "5300",
+        "horarios": [
+          {
+            "dia": "VI",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Recursantes"
+      },
+      {
+        "id": "5600",
+        "horarios": [
+          {
+            "dia": "VI",
+            "inicio": "14:00",
+            "fin": "18:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "5900",
+        "horarios": [
+          {
+            "dia": "VI",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "6300",
+        "horarios": [
+          {
+            "dia": "SA",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "7175",
+        "horarios": [
+          {
+            "dia": "LU",
+            "inicio": "12:00",
+            "fin": "14:00"
+          },
+          {
+            "dia": "VI",
+            "inicio": "12:00",
+            "fin": "14:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "7444",
+        "horarios": [
+          {
+            "dia": "JU",
+            "inicio": "12:00",
+            "fin": "16:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "7664",
+        "horarios": [
+          {
+            "dia": "SA",
+            "inicio": "12:00",
+            "fin": "16:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      }
+    ]
+  },
+  {
+    "codigo_materia": "0903",
+    "nombre": "INGLES NIVEL III",
+    "comisiones": [
+      {
+        "id": "1200",
+        "horarios": [
+          {
+            "dia": "LU",
+            "inicio": "10:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "1500",
+        "horarios": [
+          {
+            "dia": "LU",
+            "inicio": "16:00",
+            "fin": "18:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "1700",
+        "horarios": [
+          {
+            "dia": "LU",
+            "inicio": "19:00",
+            "fin": "21:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "2100",
+        "horarios": [
+          {
+            "dia": "MA",
+            "inicio": "08:00",
+            "fin": "10:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "2200",
+        "horarios": [
+          {
+            "dia": "MA",
+            "inicio": "10:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "2400",
+        "horarios": [
+          {
+            "dia": "MA",
+            "inicio": "14:00",
+            "fin": "16:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "2500",
+        "horarios": [
+          {
+            "dia": "MA",
+            "inicio": "16:00",
+            "fin": "18:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "2700",
+        "horarios": [
+          {
+            "dia": "MA",
+            "inicio": "19:00",
+            "fin": "21:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "2800",
+        "horarios": [
+          {
+            "dia": "MA",
+            "inicio": "21:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "3100",
+        "horarios": [
+          {
+            "dia": "MI",
+            "inicio": "08:00",
+            "fin": "10:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "3200",
+        "horarios": [
+          {
+            "dia": "MI",
+            "inicio": "10:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "3500",
+        "horarios": [
+          {
+            "dia": "MI",
+            "inicio": "16:00",
+            "fin": "18:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Recursantes"
+      },
+      {
+        "id": "4200",
+        "horarios": [
+          {
+            "dia": "JU",
+            "inicio": "10:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "4400",
+        "horarios": [
+          {
+            "dia": "JU",
+            "inicio": "14:00",
+            "fin": "16:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "4500",
+        "horarios": [
+          {
+            "dia": "JU",
+            "inicio": "16:00",
+            "fin": "18:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "4700",
+        "horarios": [
+          {
+            "dia": "JU",
+            "inicio": "19:00",
+            "fin": "21:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "4800",
+        "horarios": [
+          {
+            "dia": "JU",
+            "inicio": "21:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "5100",
+        "horarios": [
+          {
+            "dia": "VI",
+            "inicio": "08:00",
+            "fin": "10:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "5500",
+        "horarios": [
+          {
+            "dia": "VI",
+            "inicio": "16:00",
+            "fin": "18:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "5700",
+        "horarios": [
+          {
+            "dia": "VI",
+            "inicio": "19:00",
+            "fin": "21:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "5800",
+        "horarios": [
+          {
+            "dia": "VI",
+            "inicio": "21:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "6100",
+        "horarios": [
+          {
+            "dia": "SA",
+            "inicio": "08:00",
+            "fin": "10:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "6200",
+        "horarios": [
+          {
+            "dia": "SA",
+            "inicio": "10:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "6400",
+        "horarios": [
+          {
+            "dia": "SA",
+            "inicio": "14:00",
+            "fin": "16:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "7300",
+        "horarios": [
+          {
+            "dia": "MI",
+            "inicio": "12:00",
+            "fin": "14:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "7600",
+        "horarios": [
+          {
+            "dia": "SA",
+            "inicio": "12:00",
+            "fin": "14:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      }
+    ]
+  },
+  {
+    "codigo_materia": "0904",
+    "nombre": "INGLES NIVEL IV",
+    "comisiones": [
+      {
+        "id": "1100",
+        "horarios": [
+          {
+            "dia": "LU",
+            "inicio": "08:00",
+            "fin": "10:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "1400",
+        "horarios": [
+          {
+            "dia": "LU",
+            "inicio": "14:00",
+            "fin": "16:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "1500",
+        "horarios": [
+          {
+            "dia": "LU",
+            "inicio": "16:00",
+            "fin": "18:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Recursantes"
+      },
+      {
+        "id": "1800",
+        "horarios": [
+          {
+            "dia": "LU",
+            "inicio": "21:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "2100",
+        "horarios": [
+          {
+            "dia": "MA",
+            "inicio": "08:00",
+            "fin": "10:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "2200",
+        "horarios": [
+          {
+            "dia": "MA",
+            "inicio": "10:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "2500",
+        "horarios": [
+          {
+            "dia": "MA",
+            "inicio": "16:00",
+            "fin": "18:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "2700",
+        "horarios": [
+          {
+            "dia": "MA",
+            "inicio": "19:00",
+            "fin": "21:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "3100",
+        "horarios": [
+          {
+            "dia": "MI",
+            "inicio": "08:00",
+            "fin": "10:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "3200",
+        "horarios": [
+          {
+            "dia": "MI",
+            "inicio": "10:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "3400",
+        "horarios": [
+          {
+            "dia": "MI",
+            "inicio": "14:00",
+            "fin": "16:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "3700",
+        "horarios": [
+          {
+            "dia": "MI",
+            "inicio": "19:00",
+            "fin": "21:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "3800",
+        "horarios": [
+          {
+            "dia": "MI",
+            "inicio": "21:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "4100",
+        "horarios": [
+          {
+            "dia": "JU",
+            "inicio": "08:00",
+            "fin": "10:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "4400",
+        "horarios": [
+          {
+            "dia": "JU",
+            "inicio": "14:00",
+            "fin": "16:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "4500",
+        "horarios": [
+          {
+            "dia": "JU",
+            "inicio": "16:00",
+            "fin": "18:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "4700",
+        "horarios": [
+          {
+            "dia": "JU",
+            "inicio": "19:00",
+            "fin": "21:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "4800",
+        "horarios": [
+          {
+            "dia": "JU",
+            "inicio": "21:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "5200",
+        "horarios": [
+          {
+            "dia": "VI",
+            "inicio": "10:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "5700",
+        "horarios": [
+          {
+            "dia": "VI",
+            "inicio": "19:00",
+            "fin": "21:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "5800",
+        "horarios": [
+          {
+            "dia": "VI",
+            "inicio": "21:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "6100",
+        "horarios": [
+          {
+            "dia": "SA",
+            "inicio": "08:00",
+            "fin": "10:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "6200",
+        "horarios": [
+          {
+            "dia": "SA",
+            "inicio": "10:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "6400",
+        "horarios": [
+          {
+            "dia": "SA",
+            "inicio": "14:00",
+            "fin": "16:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "7600",
+        "horarios": [
+          {
+            "dia": "SA",
+            "inicio": "12:00",
+            "fin": "14:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      }
+    ]
+  },
+  {
+    "codigo_materia": "0911",
+    "nombre": "COMPUTACION NIVEL I",
+    "comisiones": [
+      {
+        "id": "1300",
+        "horarios": [
+          {
+            "dia": "LU",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "1600",
+        "horarios": [
+          {
+            "dia": "LU",
+            "inicio": "14:00",
+            "fin": "18:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "1900",
+        "horarios": [
+          {
+            "dia": "LU",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "2300",
+        "horarios": [
+          {
+            "dia": "MA",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "2600",
+        "horarios": [
+          {
+            "dia": "MA",
+            "inicio": "14:00",
+            "fin": "18:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "2900",
+        "horarios": [
+          {
+            "dia": "MA",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "3300",
+        "horarios": [
+          {
+            "dia": "MI",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "3600",
+        "horarios": [
+          {
+            "dia": "MI",
+            "inicio": "14:00",
+            "fin": "18:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "3900",
+        "horarios": [
+          {
+            "dia": "MI",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "4300",
+        "horarios": [
+          {
+            "dia": "JU",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "4600",
+        "horarios": [
+          {
+            "dia": "JU",
+            "inicio": "14:00",
+            "fin": "18:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "4900",
+        "horarios": [
+          {
+            "dia": "JU",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "5600",
+        "horarios": [
+          {
+            "dia": "VI",
+            "inicio": "14:00",
+            "fin": "18:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "5900",
+        "horarios": [
+          {
+            "dia": "VI",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "6300",
+        "horarios": [
+          {
+            "dia": "SA",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "6900",
+        "horarios": [
+          {
+            "dia": "A distancia",
+            "inicio": null,
+            "fin": null
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "A Distancia"
+      }
+    ]
+  },
+  {
+    "codigo_materia": "0912",
+    "nombre": "COMPUTACION  NIVEL II",
+    "comisiones": [
+      {
+        "id": "1300",
+        "horarios": [
+          {
+            "dia": "LU",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "1600",
+        "horarios": [
+          {
+            "dia": "LU",
+            "inicio": "14:00",
+            "fin": "18:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "1900",
+        "horarios": [
+          {
+            "dia": "LU",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "2300",
+        "horarios": [
+          {
+            "dia": "MA",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "2600",
+        "horarios": [
+          {
+            "dia": "MA",
+            "inicio": "14:00",
+            "fin": "18:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "2900",
+        "horarios": [
+          {
+            "dia": "MA",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "2900",
+        "horarios": [
+          {
+            "dia": "MA",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Sincrónica Teams"
+      },
+      {
+        "id": "3300",
+        "horarios": [
+          {
+            "dia": "MI",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "3600",
+        "horarios": [
+          {
+            "dia": "MI",
+            "inicio": "14:00",
+            "fin": "18:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "3900",
+        "horarios": [
+          {
+            "dia": "MI",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "4300",
+        "horarios": [
+          {
+            "dia": "JU",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "4600",
+        "horarios": [
+          {
+            "dia": "JU",
+            "inicio": "14:00",
+            "fin": "18:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "4900",
+        "horarios": [
+          {
+            "dia": "JU",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "5600",
+        "horarios": [
+          {
+            "dia": "VI",
+            "inicio": "14:00",
+            "fin": "18:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "5900",
+        "horarios": [
+          {
+            "dia": "VI",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "6300",
+        "horarios": [
+          {
+            "dia": "SA",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "6900",
+        "horarios": [
+          {
+            "dia": "A distancia",
+            "inicio": null,
+            "fin": null
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "A Distancia"
+      }
+    ]
+  },
+  {
+    "codigo_materia": "3599",
+    "nombre": "REDES MOVILES E IOT",
+    "comisiones": [
+      {
+        "id": "1900",
+        "horarios": [
+          {
+            "dia": "LU",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      }
+    ]
+  },
+  {
+    "codigo_materia": "3621",
+    "nombre": "MATEMATICA DISCRETA",
+    "comisiones": [
+      {
+        "id": "2900",
+        "horarios": [
+          {
+            "dia": "MA",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "3300",
+        "horarios": [
+          {
+            "dia": "MI",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "4600",
+        "horarios": [
+          {
+            "dia": "JU",
+            "inicio": "14:00",
+            "fin": "18:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "4900",
+        "horarios": [
+          {
+            "dia": "JU",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "4900",
+        "horarios": [
+          {
+            "dia": "JU",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "Ituzaingo",
+        "modalidad": "Cursada en Ituzaingó"
+      }
+    ]
+  },
+  {
+    "codigo_materia": "3622",
+    "nombre": "ANALISIS MATEMATICO I",
+    "comisiones": [
+      {
+        "id": "1900",
+        "horarios": [
+          {
+            "dia": "LU",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "2300",
+        "horarios": [
+          {
+            "dia": "MA",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "2900",
+        "horarios": [
+          {
+            "dia": "MA",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "Ituzaingo",
+        "modalidad": "Cursada en Ituzaingó"
+      },
+      {
+        "id": "4300",
+        "horarios": [
+          {
+            "dia": "JU",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "4900",
+        "horarios": [
+          {
+            "dia": "JU",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "5600",
+        "horarios": [
+          {
+            "dia": "VI",
+            "inicio": "14:00",
+            "fin": "18:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "5900",
+        "horarios": [
+          {
+            "dia": "VI",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      }
+    ]
+  },
+  {
+    "codigo_materia": "3623",
+    "nombre": "PROGRAMACION INICIAL",
+    "comisiones": [
+      {
+        "id": "1300",
+        "horarios": [
+          {
+            "dia": "LU",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "1600",
+        "horarios": [
+          {
+            "dia": "LU",
+            "inicio": "14:00",
+            "fin": "18:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "2300",
+        "horarios": [
+          {
+            "dia": "MA",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "2900",
+        "horarios": [
+          {
+            "dia": "MA",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "3300",
+        "horarios": [
+          {
+            "dia": "MI",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "3900",
+        "horarios": [
+          {
+            "dia": "MI",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "Ituzaingo",
+        "modalidad": "Cursada en Ituzaingó"
+      },
+      {
+        "id": "4900",
+        "horarios": [
+          {
+            "dia": "JU",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Recursantes"
+      }
+    ]
+  },
+  {
+    "codigo_materia": "3624",
+    "nombre": "INTRODUCCION A LOS SISTEMAS DE INFORMACION",
+    "comisiones": [
+      {
+        "id": "1900",
+        "horarios": [
+          {
+            "dia": "LU",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "Ituzaingo",
+        "modalidad": "Cursada en Ituzaingó"
+      },
+      {
+        "id": "2900",
+        "horarios": [
+          {
+            "dia": "MA",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Sincrónica Teams"
+      },
+      {
+        "id": "3300",
+        "horarios": [
+          {
+            "dia": "MI",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Sincrónica Teams"
+      },
+      {
+        "id": "4300",
+        "horarios": [
+          {
+            "dia": "JU",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      }
+    ]
+  },
+  {
+    "codigo_materia": "3625",
+    "nombre": "SISTEMAS DE NUMERACION",
+    "comisiones": [
+      {
+        "id": "1900",
+        "horarios": [
+          {
+            "dia": "LU",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "Ituzaingo",
+        "modalidad": "Cursada en Ituzaingó"
+      },
+      {
+        "id": "2300",
+        "horarios": [
+          {
+            "dia": "MA",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "3300",
+        "horarios": [
+          {
+            "dia": "MI",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "3900",
+        "horarios": [
+          {
+            "dia": "MI",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "4900",
+        "horarios": [
+          {
+            "dia": "JU",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      }
+    ]
+  },
+  {
+    "codigo_materia": "3626",
+    "nombre": "PRINCIPIOS DE CALIDAD DE SOFTWARE",
+    "comisiones": [
+      {
+        "id": "2300",
+        "horarios": [
+          {
+            "dia": "MA",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "3900",
+        "horarios": [
+          {
+            "dia": "MI",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Sincrónica Teams"
+      },
+      {
+        "id": "4900",
+        "horarios": [
+          {
+            "dia": "JU",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "5900",
+        "horarios": [
+          {
+            "dia": "VI",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      }
+    ]
+  },
+  {
+    "codigo_materia": "3627",
+    "nombre": "ALGEBRA Y GEOMETRIA ANALITICA I",
+    "comisiones": [
+      {
+        "id": "1300",
+        "horarios": [
+          {
+            "dia": "LU",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "1900",
+        "horarios": [
+          {
+            "dia": "LU",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "2600",
+        "horarios": [
+          {
+            "dia": "MA",
+            "inicio": "14:00",
+            "fin": "18:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "3900",
+        "horarios": [
+          {
+            "dia": "MI",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "3900",
+        "horarios": [
+          {
+            "dia": "MI",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Sincrónica Teams"
+      },
+      {
+        "id": "4300",
+        "horarios": [
+          {
+            "dia": "JU",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "4600",
+        "horarios": [
+          {
+            "dia": "JU",
+            "inicio": "14:00",
+            "fin": "18:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "5300",
+        "horarios": [
+          {
+            "dia": "VI",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "5900",
+        "horarios": [
+          {
+            "dia": "VI",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Sincrónica Teams"
+      }
+    ]
+  },
+  {
+    "codigo_materia": "3628",
+    "nombre": "FISICA I",
+    "comisiones": [
+      {
+        "id": "2300",
+        "horarios": [
+          {
+            "dia": "MA",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "3600",
+        "horarios": [
+          {
+            "dia": "MI",
+            "inicio": "14:00",
+            "fin": "18:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "3900",
+        "horarios": [
+          {
+            "dia": "MI",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "4300",
+        "horarios": [
+          {
+            "dia": "JU",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      }
+    ]
+  },
+  {
+    "codigo_materia": "3629",
+    "nombre": "PROGRAMACION ESTRUCTURADA BASICA",
+    "comisiones": [
+      {
+        "id": "1300",
+        "horarios": [
+          {
+            "dia": "LU",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "1600",
+        "horarios": [
+          {
+            "dia": "LU",
+            "inicio": "14:00",
+            "fin": "18:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "1900",
+        "horarios": [
+          {
+            "dia": "LU",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "2300",
+        "horarios": [
+          {
+            "dia": "MA",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "2600",
+        "horarios": [
+          {
+            "dia": "MA",
+            "inicio": "14:00",
+            "fin": "18:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "4300",
+        "horarios": [
+          {
+            "dia": "JU",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "4600",
+        "horarios": [
+          {
+            "dia": "JU",
+            "inicio": "14:00",
+            "fin": "18:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "5900",
+        "horarios": [
+          {
+            "dia": "VI",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      }
+    ]
+  },
+  {
+    "codigo_materia": "3630",
+    "nombre": "INTRODUCCION A LA GESTION DE REQUISITOS",
+    "comisiones": [
+      {
+        "id": "2300",
+        "horarios": [
+          {
+            "dia": "MA",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "2900",
+        "horarios": [
+          {
+            "dia": "MA",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "4300",
+        "horarios": [
+          {
+            "dia": "JU",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "4900",
+        "horarios": [
+          {
+            "dia": "JU",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      }
+    ]
+  },
+  {
+    "codigo_materia": "3631",
+    "nombre": "FUNDAMENTOS DE SISTEMAS EMBEBIDOS",
+    "comisiones": [
+      {
+        "id": "1300",
+        "horarios": [
+          {
+            "dia": "LU",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "1600",
+        "horarios": [
+          {
+            "dia": "LU",
+            "inicio": "14:00",
+            "fin": "18:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Sincrónica Teams"
+      },
+      {
+        "id": "2900",
+        "horarios": [
+          {
+            "dia": "MA",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "3300",
+        "horarios": [
+          {
+            "dia": "MI",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "3900",
+        "horarios": [
+          {
+            "dia": "MI",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "5300",
+        "horarios": [
+          {
+            "dia": "VI",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      }
+    ]
+  },
+  {
+    "codigo_materia": "3632",
+    "nombre": "INTRODUCCION A LOS PROYECTOS INFORMATICOS",
+    "comisiones": [
+      {
+        "id": "2300",
+        "horarios": [
+          {
+            "dia": "MA",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "2900",
+        "horarios": [
+          {
+            "dia": "MA",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Sincrónica Teams"
+      },
+      {
+        "id": "5300",
+        "horarios": [
+          {
+            "dia": "VI",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "6300",
+        "horarios": [
+          {
+            "dia": "SA",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Sincrónica Teams"
+      }
+    ]
+  },
+  {
+    "codigo_materia": "3633",
+    "nombre": "ANALISIS MATEMATICO II",
+    "comisiones": [
+      {
+        "id": "1600",
+        "horarios": [
+          {
+            "dia": "LU",
+            "inicio": "14:00",
+            "fin": "18:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "2300",
+        "horarios": [
+          {
+            "dia": "MA",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "3900",
+        "horarios": [
+          {
+            "dia": "MI",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "4300",
+        "horarios": [
+          {
+            "dia": "JU",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "5900",
+        "horarios": [
+          {
+            "dia": "VI",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      }
+    ]
+  },
+  {
+    "codigo_materia": "3634",
+    "nombre": "FISICA II",
+    "comisiones": [
+      {
+        "id": "1900",
+        "horarios": [
+          {
+            "dia": "LU",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "5300",
+        "horarios": [
+          {
+            "dia": "VI",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      }
+    ]
+  },
+  {
+    "codigo_materia": "3635",
+    "nombre": "TOPICOS DE PROGRAMACION",
+    "comisiones": [
+      {
+        "id": "1900",
+        "horarios": [
+          {
+            "dia": "LU",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "2600",
+        "horarios": [
+          {
+            "dia": "MA",
+            "inicio": "14:00",
+            "fin": "18:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "2900",
+        "horarios": [
+          {
+            "dia": "MA",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "3600",
+        "horarios": [
+          {
+            "dia": "MI",
+            "inicio": "14:00",
+            "fin": "18:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "3900",
+        "horarios": [
+          {
+            "dia": "MI",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "4300",
+        "horarios": [
+          {
+            "dia": "JU",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "4900",
+        "horarios": [
+          {
+            "dia": "JU",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "5900",
+        "horarios": [
+          {
+            "dia": "VI",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "6300",
+        "horarios": [
+          {
+            "dia": "SA",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      }
+    ]
+  },
+  {
+    "codigo_materia": "3636",
+    "nombre": "BASES DE DATOS",
+    "comisiones": [
+      {
+        "id": "1900",
+        "horarios": [
+          {
+            "dia": "LU",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "2900",
+        "horarios": [
+          {
+            "dia": "MA",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Sincrónica Teams"
+      },
+      {
+        "id": "3900",
+        "horarios": [
+          {
+            "dia": "MI",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Sincrónica Teams"
+      },
+      {
+        "id": "4900",
+        "horarios": [
+          {
+            "dia": "JU",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Sincrónica Teams"
+      },
+      {
+        "id": "6300",
+        "horarios": [
+          {
+            "dia": "SA",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Sincrónica Teams"
+      }
+    ]
+  },
+  {
+    "codigo_materia": "3637",
+    "nombre": "ANALISIS DE SISTEMAS",
+    "comisiones": [
+      {
+        "id": "1900",
+        "horarios": [
+          {
+            "dia": "LU",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Sincrónica Teams"
+      },
+      {
+        "id": "2300",
+        "horarios": [
+          {
+            "dia": "MA",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "4900",
+        "horarios": [
+          {
+            "dia": "JU",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Sincrónica Teams"
+      },
+      {
+        "id": "5300",
+        "horarios": [
+          {
+            "dia": "VI",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      }
+    ]
+  },
+  {
+    "codigo_materia": "3638",
+    "nombre": "ARQUITECTURA DE COMPUTADORAS",
+    "comisiones": [
+      {
+        "id": "1900",
+        "horarios": [
+          {
+            "dia": "LU",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "2600",
+        "horarios": [
+          {
+            "dia": "MA",
+            "inicio": "14:00",
+            "fin": "18:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Recursantes"
+      },
+      {
+        "id": "3600",
+        "horarios": [
+          {
+            "dia": "MI",
+            "inicio": "14:00",
+            "fin": "18:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "4900",
+        "horarios": [
+          {
+            "dia": "JU",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "5600",
+        "horarios": [
+          {
+            "dia": "VI",
+            "inicio": "14:00",
+            "fin": "18:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Sincrónica Teams"
+      },
+      {
+        "id": "5900",
+        "horarios": [
+          {
+            "dia": "VI",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      }
+    ]
+  },
+  {
+    "codigo_materia": "3639",
+    "nombre": "ANALISIS MATEMATICO III",
+    "comisiones": [
+      {
+        "id": "2300",
+        "horarios": [
+          {
+            "dia": "MA",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "4300",
+        "horarios": [
+          {
+            "dia": "JU",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "5600",
+        "horarios": [
+          {
+            "dia": "VI",
+            "inicio": "14:00",
+            "fin": "18:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "5900",
+        "horarios": [
+          {
+            "dia": "VI",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      }
+    ]
+  },
+  {
+    "codigo_materia": "3640",
+    "nombre": "ALGORITMOS Y ESTRUCTURAS DE DATOS",
+    "comisiones": [
+      {
+        "id": "1900",
+        "horarios": [
+          {
+            "dia": "LU",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "3300",
+        "horarios": [
+          {
+            "dia": "MI",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "3600",
+        "horarios": [
+          {
+            "dia": "MI",
+            "inicio": "14:00",
+            "fin": "18:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "3900",
+        "horarios": [
+          {
+            "dia": "MI",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "Ituzaingo",
+        "modalidad": "Cursada en Ituzaingó"
+      }
+    ]
+  },
+  {
+    "codigo_materia": "3641",
+    "nombre": "BASES DE DATOS APLICADAS",
+    "comisiones": [
+      {
+        "id": "2900",
+        "horarios": [
+          {
+            "dia": "MA",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "5600",
+        "horarios": [
+          {
+            "dia": "VI",
+            "inicio": "14:00",
+            "fin": "18:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      }
+    ]
+  },
+  {
+    "codigo_materia": "3642",
+    "nombre": "PRINCIPIOS DE DISEÑO DE SISTEMAS",
+    "comisiones": [
+      {
+        "id": "3900",
+        "horarios": [
+          {
+            "dia": "MI",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "4300",
+        "horarios": [
+          {
+            "dia": "JU",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      }
+    ]
+  },
+  {
+    "codigo_materia": "3643",
+    "nombre": "REDES DE COMPUTADORAS",
+    "comisiones": [
+      {
+        "id": "3300",
+        "horarios": [
+          {
+            "dia": "MI",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "3900",
+        "horarios": [
+          {
+            "dia": "MI",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "5900",
+        "horarios": [
+          {
+            "dia": "VI",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Sincrónica Teams"
+      }
+    ]
+  },
+  {
+    "codigo_materia": "3644",
+    "nombre": "GESTION DE LAS ORGANIZACIONES",
+    "comisiones": [
+      {
+        "id": "2900",
+        "horarios": [
+          {
+            "dia": "MA",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "3900",
+        "horarios": [
+          {
+            "dia": "MI",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "4900",
+        "horarios": [
+          {
+            "dia": "JU",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      }
+    ]
+  },
+  {
+    "codigo_materia": "3645",
+    "nombre": "ALGEBRA Y GEOMETRIA ANALITICA II",
+    "comisiones": [
+      {
+        "id": "3300",
+        "horarios": [
+          {
+            "dia": "MI",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "3600",
+        "horarios": [
+          {
+            "dia": "MI",
+            "inicio": "14:00",
+            "fin": "18:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "3900",
+        "horarios": [
+          {
+            "dia": "MI",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "6300",
+        "horarios": [
+          {
+            "dia": "SA",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      }
+    ]
+  },
+  {
+    "codigo_materia": "3646",
+    "nombre": "PARADIGMAS DE PROGRAMACION",
+    "comisiones": [
+      {
+        "id": "2900",
+        "horarios": [
+          {
+            "dia": "MA",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "5900",
+        "horarios": [
+          {
+            "dia": "VI",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      }
+    ]
+  },
+  {
+    "codigo_materia": "3647",
+    "nombre": "REQUISITOS AVANZADOS",
+    "comisiones": [
+      {
+        "id": "1900",
+        "horarios": [
+          {
+            "dia": "LU",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Sincrónica Teams"
+      },
+      {
+        "id": "2900",
+        "horarios": [
+          {
+            "dia": "MA",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Sincrónica Teams"
+      }
+    ]
+  },
+  {
+    "codigo_materia": "3648",
+    "nombre": "DISEÑO DE SOFTWARE",
+    "comisiones": [
+      {
+        "id": "1900",
+        "horarios": [
+          {
+            "dia": "LU",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "4300",
+        "horarios": [
+          {
+            "dia": "JU",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      }
+    ]
+  },
+  {
+    "codigo_materia": "3649",
+    "nombre": "SISTEMAS OPERATIVOS",
+    "comisiones": [
+      {
+        "id": "1900",
+        "horarios": [
+          {
+            "dia": "LU",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Sincrónica Teams"
+      },
+      {
+        "id": "3900",
+        "horarios": [
+          {
+            "dia": "MI",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Sincrónica Teams"
+      },
+      {
+        "id": "4900",
+        "horarios": [
+          {
+            "dia": "JU",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Sincrónica Teams"
+      }
+    ]
+  },
+  {
+    "codigo_materia": "3650",
+    "nombre": "SEGURIDAD DE LA INFORMACION",
+    "comisiones": [
+      {
+        "id": "3900",
+        "horarios": [
+          {
+            "dia": "MI",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      }
+    ]
+  },
+  {
+    "codigo_materia": "3651",
+    "nombre": "PROBABILIDAD Y ESTADISTICA",
+    "comisiones": [
+      {
+        "id": "2900",
+        "horarios": [
+          {
+            "dia": "MA",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Sincrónica Teams"
+      },
+      {
+        "id": "3600",
+        "horarios": [
+          {
+            "dia": "MI",
+            "inicio": "14:00",
+            "fin": "18:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "3900",
+        "horarios": [
+          {
+            "dia": "MI",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      },
+      {
+        "id": "4300",
+        "horarios": [
+          {
+            "dia": "JU",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "5300",
+        "horarios": [
+          {
+            "dia": "VI",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      }
+    ]
+  },
+  {
+    "codigo_materia": "3652",
+    "nombre": "PROGRAMACION AVANZADA",
+    "comisiones": [
+      {
+        "id": "4600",
+        "horarios": [
+          {
+            "dia": "JU",
+            "inicio": "14:00",
+            "fin": "18:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "4900",
+        "horarios": [
+          {
+            "dia": "JU",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      }
+    ]
+  },
+  {
+    "codigo_materia": "3653",
+    "nombre": "ARQUITECTURA DE SISTEMAS SOFTWARE",
+    "comisiones": [
+      {
+        "id": "1900",
+        "horarios": [
+          {
+            "dia": "LU",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      }
+    ]
+  },
+  {
+    "codigo_materia": "3654",
+    "nombre": "VIRTUALIZACION DE HARDWARE",
+    "comisiones": [
+      {
+        "id": "2900",
+        "horarios": [
+          {
+            "dia": "MA",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Sincrónica Teams"
+      },
+      {
+        "id": "4900",
+        "horarios": [
+          {
+            "dia": "JU",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Sincrónica Teams"
+      }
+    ]
+  },
+  {
+    "codigo_materia": "3655",
+    "nombre": "AUDITORIA Y LEGISLACION",
+    "comisiones": [
+      {
+        "id": "2900",
+        "horarios": [
+          {
+            "dia": "MA",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Sincrónica Teams"
+      }
+    ]
+  },
+  {
+    "codigo_materia": "3656",
+    "nombre": "ESTADISTICA APLICADA",
+    "comisiones": [
+      {
+        "id": "2900",
+        "horarios": [
+          {
+            "dia": "MA",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Sincrónica Teams"
+      },
+      {
+        "id": "4900",
+        "horarios": [
+          {
+            "dia": "JU",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Sincrónica Teams"
+      }
+    ]
+  },
+  {
+    "codigo_materia": "3657",
+    "nombre": "AUTOMATAS Y GRAMATICAS",
+    "comisiones": [
+      {
+        "id": "5900",
+        "horarios": [
+          {
+            "dia": "VI",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Sincrónica Teams"
+      }
+    ]
+  },
+  {
+    "codigo_materia": "3658",
+    "nombre": "PROGRAMACION CONCURRENTE",
+    "comisiones": [
+      {
+        "id": "3900",
+        "horarios": [
+          {
+            "dia": "MI",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      }
+    ]
+  },
+  {
+    "codigo_materia": "3659",
+    "nombre": "GESTION APLICADA AL DESARROLLO DE SOFTWARE I",
+    "comisiones": [
+      {
+        "id": "4900",
+        "horarios": [
+          {
+            "dia": "JU",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      }
+    ]
+  },
+  {
+    "codigo_materia": "3660",
+    "nombre": "SISTEMAS OPERATIVOS AVANZADOS",
+    "comisiones": [
+      {
+        "id": "1900",
+        "horarios": [
+          {
+            "dia": "LU",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "2900",
+        "horarios": [
+          {
+            "dia": "MA",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      }
+    ]
+  },
+  {
+    "codigo_materia": "3661",
+    "nombre": "GESTION DE PROYECTOS",
+    "comisiones": [
+      {
+        "id": "3900",
+        "horarios": [
+          {
+            "dia": "MI",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Sincrónica Teams"
+      }
+    ]
+  },
+  {
+    "codigo_materia": "3662",
+    "nombre": "MATEMATICA APLICADA",
+    "comisiones": [
+      {
+        "id": "5900",
+        "horarios": [
+          {
+            "dia": "VI",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Sincrónica Teams"
+      }
+    ]
+  },
+  {
+    "codigo_materia": "3663",
+    "nombre": "LENGUAJES Y COMPILADORES",
+    "comisiones": [
+      {
+        "id": "1900",
+        "horarios": [
+          {
+            "dia": "LU",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "2900",
+        "horarios": [
+          {
+            "dia": "MA",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      }
+    ]
+  },
+  {
+    "codigo_materia": "3664",
+    "nombre": "INTELIGENCIA ARTIFICIAL",
+    "comisiones": [
+      {
+        "id": "3900",
+        "horarios": [
+          {
+            "dia": "MI",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Sincrónica Teams"
+      }
+    ]
+  },
+  {
+    "codigo_materia": "3665",
+    "nombre": "GESTION APLICADA AL DESARROLLO DE SOFTWARE II",
+    "comisiones": [
+      {
+        "id": "2900",
+        "horarios": [
+          {
+            "dia": "MA",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Presencial"
+      }
+    ]
+  },
+  {
+    "codigo_materia": "3666",
+    "nombre": "SEGURIDAD APLICADA Y FORENSIA",
+    "comisiones": [
+      {
+        "id": "1900",
+        "horarios": [
+          {
+            "dia": "LU",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Sincrónica Teams"
+      }
+    ]
+  },
+  {
+    "codigo_materia": "3667",
+    "nombre": "GESTION DE LA CALIDAD EN PROCESOS DE SISTEMAS",
+    "comisiones": [
+      {
+        "id": "2900",
+        "horarios": [
+          {
+            "dia": "MA",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Sincrónica Teams"
+      }
+    ]
+  },
+  {
+    "codigo_materia": "3668",
+    "nombre": "INTELIGENCIA ARTIFICIAL APLICADA",
+    "comisiones": [
+      {
+        "id": "5900",
+        "horarios": [
+          {
+            "dia": "VI",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Sincrónica Teams"
+      }
+    ]
+  },
+  {
+    "codigo_materia": "3669",
+    "nombre": "INNOVACION Y EMPRENDEDORISMO",
+    "comisiones": [
+      {
+        "id": "2900",
+        "horarios": [
+          {
+            "dia": "MA",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Sincrónica Teams"
+      }
+    ]
+  },
+  {
+    "codigo_materia": "3670",
+    "nombre": "CIENCIA DE DATOS",
+    "comisiones": [
+      {
+        "id": "4900",
+        "horarios": [
+          {
+            "dia": "JU",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Sincrónica Teams"
+      }
+    ]
+  },
+  {
+    "codigo_materia": "3671",
+    "nombre": "PROYECTO FINAL DE CARRERA",
+    "comisiones": [
+      {
+        "id": "6600",
+        "horarios": [
+          {
+            "dia": "SA",
+            "inicio": "14:00",
+            "fin": "18:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      }
+    ]
+  },
+  {
+    "codigo_materia": "3675",
+    "nombre": "PRACTICA PROFESIONAL SUPERVISADA",
+    "comisiones": [
+      {
+        "id": "5600",
+        "horarios": [
+          {
+            "dia": "VI",
+            "inicio": "14:00",
+            "fin": "18:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "A Distancia"
+      }
+    ]
+  },
+  {
+    "codigo_materia": "3676",
+    "nombre": "RESPONSABILIDAD SOCIAL UNIVERSITARIA",
+    "comisiones": [
+      {
+        "id": "1900",
+        "horarios": [
+          {
+            "dia": "LU",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "2900",
+        "horarios": [
+          {
+            "dia": "MA",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "3300",
+        "horarios": [
+          {
+            "dia": "MI",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "3600",
+        "horarios": [
+          {
+            "dia": "MI",
+            "inicio": "14:00",
+            "fin": "18:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "3900",
+        "horarios": [
+          {
+            "dia": "MI",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      },
+      {
+        "id": "5300",
+        "horarios": [
+          {
+            "dia": "VI",
+            "inicio": "08:00",
+            "fin": "12:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Sincrónica Teams"
+      }
+    ]
+  },
+  {
+    "codigo_materia": "3677",
+    "nombre": "LENGUAJE ORIENTADO A NEGOCIOS",
+    "comisiones": [
+      {
+        "id": "3900",
+        "horarios": [
+          {
+            "dia": "MI",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Sincrónica Teams"
+      }
+    ]
+  },
+  {
+    "codigo_materia": "3678",
+    "nombre": "TECNOLOGIAS EN SEGURIDAD",
+    "comisiones": [
+      {
+        "id": "1900",
+        "horarios": [
+          {
+            "dia": "LU",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Sincrónica Teams"
+      }
+    ]
+  },
+  {
+    "codigo_materia": "3679",
+    "nombre": "VISION ARTIFICIAL",
+    "comisiones": [
+      {
+        "id": "4900",
+        "horarios": [
+          {
+            "dia": "JU",
+            "inicio": "19:00",
+            "fin": "23:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Sincrónica Teams"
+      }
+    ]
+  },
+  {
+    "codigo_materia": "3680",
+    "nombre": "TALLER DE INTEGRACION",
+    "comisiones": [
+      {
+        "id": "7600",
+        "horarios": [
+          {
+            "dia": "SA",
+            "inicio": "12:00",
+            "fin": "14:00"
+          }
+        ],
+        "sede": "San Justo",
+        "modalidad": "Semipresencial"
+      }
+    ]
+  }
+]

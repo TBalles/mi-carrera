@@ -181,19 +181,27 @@
         <div class="panel__head panel__head--page">
           <div>
             <h2>Planificador de cursada</h2>
-            <p class="muted">Te arma el camino más corto para recibirte respetando correlativas y la oferta por cuatrimestre. Usa tus materias cargadas; no incluye las aprobadas ni las que tenés en final.</p>
+            <p class="muted">Armá tus cuatrimestres a mano o calculá el plan óptimo. Cada cuatrimestre se puede optimizar por separado: asume aprobadas las reales y todas las de los cuatrimestres anteriores. Respeta correlativas, las franjas elegidas y evita choques de horario.</p>
           </div>
-          <div class="filters">
-            <label class="plan-ctrl">Materias por cuatrimestre
-              <input id="plan-per-sem" type="number" min="1" max="12" value="6">
-            </label>
-            <label class="plan-ctrl">Arranca en
-              <select id="plan-start">
-                <option value="1°C">1° cuatrimestre</option>
-                <option value="2°C">2° cuatrimestre</option>
-              </select>
-            </label>
+        </div>
+        <div class="plan-toolbar">
+          <div class="plan-franjas">
+            <span class="plan-franjas__lbl">Franjas:</span>
+            <label class="franja-opt"><input type="checkbox" class="franja-chk" value="manana" checked> Mañana</label>
+            <label class="franja-opt"><input type="checkbox" class="franja-chk" value="tarde" checked> Tarde</label>
+            <label class="franja-opt"><input type="checkbox" class="franja-chk" value="noche" checked> Noche</label>
           </div>
+          <label class="plan-ctrl">Máx por cuatri
+            <input id="plan-per-sem" type="number" min="1" max="12" value="6">
+          </label>
+          <label class="plan-ctrl">Arranca en
+            <select id="plan-start">
+              <option value="1°C">1° cuatrimestre</option>
+              <option value="2°C">2° cuatrimestre</option>
+            </select>
+          </label>
+          <button id="plan-calc" class="btn btn--primary">Calcular plan óptimo</button>
+          <button id="plan-add-cuatri" class="btn btn--ghost">+ Cuatrimestre</button>
         </div>
         <div id="plan-summary" class="plan-summary"></div>
         <div id="plan-output" class="plan-output"></div>

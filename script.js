@@ -10,6 +10,8 @@ let customNotas = {};
 let historialData = [];
 let statusChart = null;
 let currentUser = null;          // objeto user de Supabase
+let oferta = {};                 // codigo -> [comisiones] (horarios por materia)
+let plannerState = null;         // plan editable del usuario (persistido)
 
 const STORE_THEME = 'plan.theme.v1';
 
@@ -47,6 +49,7 @@ async function loadUserData() {
   customEstados = {};
   customNotas = {};
   historialData = null;
+  plannerState = null;
   const { data, error } = await supabaseClient
     .from('user_data').select('key,value').eq('user_id', currentUser.id);
   if (error) { manejarErrorNube(error, 'cargando datos'); return; }
@@ -55,6 +58,7 @@ async function loadUserData() {
     if (row.key === 'estados')   customEstados = row.value || {};
     else if (row.key === 'notas')    customNotas = row.value || {};
     else if (row.key === 'historial') historialData = row.value || [];
+    else if (row.key === 'planner')   plannerState = row.value || null;
   }
 }
 
@@ -340,12 +344,15 @@ async function seedUsuarioOriginal() {
 }
 
 async function loadPlan() {
-  const [plan, corr] = await Promise.all([
+  const [plan, corr, ofe] = await Promise.all([
     fetchJSON('plan.json'),
     fetchJSON('correlativas.json'),
+    fetchJSON('oferta.json').catch(() => []),
   ]);
   planData     = plan;
   correlativas = corr;
+  oferta = {};
+  (ofe || []).forEach(m => { oferta[String(m.codigo_materia)] = m.comisiones || []; });
   await seedUsuarioOriginal();   // una sola vez para la cuenta original
   planData.forEach(i => { i.estado = baseEstado(i); i.nota = baseNota(i); });
   recalcular();
@@ -1128,19 +1135,85 @@ function initGrafo() {
 }
 
 /* ════════════════════════════════════════════════════════
-   Planificador de cursada (camino más corto para recibirse)
+   Planificador de cursada (editable + horarios + optimización)
    ════════════════════════════════════════════════════════ */
 // Una materia ya "no hay que cursarla" si está aprobada o pendiente de final
 function planMateriaHecha(item) { return item.estado === 'aprobada' || item.estado === 'pendiente de final'; }
 
-function computePlan(perSem, startCuatri) {
-  if (!dependentsOf) buildDependents();
-  const pendientes = planData.filter(i => !planMateriaHecha(i));
-  const done = new Set(planData.filter(planMateriaHecha).map(i => i.codigo));
+const DIA_CORTO = { LU: 'Lun', MA: 'Mar', MI: 'Mié', JU: 'Jue', VI: 'Vie', SA: 'Sáb' };
 
-  // Camino crítico: largo de la cadena de dependientes pendientes (incluyéndose)
+function ensurePlanner() {
+  if (!plannerState) plannerState = {};
+  if (!Array.isArray(plannerState.cuatris)) plannerState.cuatris = [];
+  if (!Array.isArray(plannerState.franjas)) plannerState.franjas = ['manana', 'tarde', 'noche'];
+  if (!plannerState.perSem) plannerState.perSem = 6;
+  if (!plannerState.startCuatri) plannerState.startCuatri = '1°C';
+}
+function savePlanner() { ensurePlanner(); saveData('planner', plannerState); }
+function franjasSet() { ensurePlanner(); return new Set(plannerState.franjas); }
+
+// Franja de un horario según su hora de inicio
+function franjaDeHorario(h) {
+  if (!h || !h.inicio) return 'distancia';
+  const hh = parseInt(String(h.inicio).slice(0, 2), 10);
+  if (hh < 13) return 'manana';
+  if (hh < 19) return 'tarde';
+  return 'noche';
+}
+// Comisiones de una materia válidas para las franjas elegidas.
+// Sin oferta cargada => comisión "virtual" (sin restricción de horario).
+function comisionesValidas(cod, fr) {
+  const entry = oferta[String(cod)];
+  if (!entry || !entry.length) return [{ _virtual: true, horarios: [] }];
+  return entry.filter(com => (com.horarios || []).every(h => {
+    const f = franjaDeHorario(h);
+    return f === 'distancia' || fr.has(f);
+  }));
+}
+function comisionesSolapan(c1, c2) {
+  for (const a of (c1.horarios || [])) {
+    for (const b of (c2.horarios || [])) {
+      if (!a.inicio || !b.inicio) continue;
+      if (a.dia === b.dia && a.inicio < b.fin && b.inicio < a.fin) return true;
+    }
+  }
+  return false;
+}
+// Intenta asignar una comisión a cada materia sin choques. Devuelve [{cod,com}] o null.
+function asignarComisiones(codigos, fr) {
+  const opts = codigos.map(c => comisionesValidas(c, fr));
+  if (opts.some(o => !o.length)) return null;
+  const chosen = [];
+  function bt(i) {
+    if (i === opts.length) return true;
+    for (const com of opts[i]) {
+      if (chosen.every(pc => !comisionesSolapan(pc, com))) { chosen.push(com); if (bt(i + 1)) return true; chosen.pop(); }
+    }
+    return false;
+  }
+  return bt(0) ? codigos.map((c, i) => ({ cod: c, com: chosen[i] })) : null;
+}
+function fmtComision(com) {
+  if (!com || com._virtual) return '';
+  const hs = com.horarios || [];
+  if (!hs.length || !hs[0].inicio) return 'a distancia';
+  return hs.map(h => `${DIA_CORTO[h.dia] || h.dia} ${String(h.inicio).slice(0, 5)}–${String(h.fin).slice(0, 5)}`).join(' · ');
+}
+
+function planCuatriTipo(idx) {
+  const s = plannerState.startCuatri;
+  return (idx % 2 === 0) ? s : (s === '1°C' ? '2°C' : '1°C');
+}
+// Materias "ya hechas" antes del cuatri idx = aprobadas/pend.final reales + todas las de cuatris anteriores
+function planDoneHasta(idx) {
+  const done = new Set(planData.filter(planMateriaHecha).map(i => i.codigo));
+  for (let k = 0; k < idx; k++) (plannerState.cuatris[k] || []).forEach(c => done.add(+c));
+  return done;
+}
+function planCplFactory() {
+  if (!dependentsOf) buildDependents();
   const memo = {};
-  function cpl(cod) {
+  return function cpl(cod) {
     if (memo[cod] != null) return memo[cod];
     let best = 1;
     (dependentsOf[cod] || []).forEach(dep => {
@@ -1148,104 +1221,208 @@ function computePlan(perSem, startCuatri) {
       if (d && !planMateriaHecha(d)) best = Math.max(best, 1 + cpl(dep));
     });
     return (memo[cod] = best);
-  }
+  };
+}
 
-  const scheduled = new Set();
-  const semestres = [];
-  let cuatri = startCuatri;
-  let guard = 0;
-
-  // Cuatrimestre actual = las materias en estado "cursando" (van fijas primero).
-  // Al terminarlo, habilitan correlativas para lo que sigue.
-  const cursando = pendientes.filter(it => it.estado === 'cursando');
-  if (cursando.length) {
-    semestres.push({ cuatri, materias: cursando, actual: true });
-    cursando.forEach(it => { scheduled.add(it.codigo); done.add(it.codigo); });
-    cuatri = (cuatri === '1°C') ? '2°C' : '1°C';
+// Calcula el conjunto óptimo para el cuatri idx (no escribe estado)
+function calcCuatri(idx) {
+  ensurePlanner();
+  const fr = franjasSet();
+  const done = planDoneHasta(idx);
+  const tipo = planCuatriTipo(idx);
+  const enOtros = new Set();
+  plannerState.cuatris.forEach((arr, k) => { if (k !== idx) (arr || []).forEach(c => enOtros.add(+c)); });
+  const cand = planData.filter(it =>
+    !planMateriaHecha(it) && !done.has(it.codigo) && !enOtros.has(it.codigo) &&
+    (it.cuatri === tipo || it.cuatri === 'Transversal') &&
+    (correlativas[it.codigo] || []).every(p => done.has(p)) &&
+    comisionesValidas(it.codigo, fr).length > 0
+  );
+  const cpl = planCplFactory();
+  cand.sort((a, b) => cpl(b.codigo) - cpl(a.codigo) || a.anio - b.anio || a.codigo - b.codigo);
+  const eleg = [];
+  for (const it of cand) {
+    if (eleg.length >= plannerState.perSem) break;
+    if (asignarComisiones([...eleg, it.codigo], fr)) eleg.push(it.codigo);
   }
+  return eleg;
+}
 
-  while (scheduled.size < pendientes.length && guard < 60) {
-    guard++;
-    const elegibles = pendientes.filter(it =>
-      !scheduled.has(it.codigo) &&
-      (it.cuatri === cuatri || it.cuatri === 'Transversal') &&
-      (correlativas[it.codigo] || []).every(p => done.has(p))
-    );
-    elegibles.sort((a, b) => cpl(b.codigo) - cpl(a.codigo) || a.anio - b.anio || a.codigo - b.codigo);
-    const tomar = elegibles.slice(0, perSem);
-    semestres.push({ cuatri, materias: tomar });
-    tomar.forEach(it => { scheduled.add(it.codigo); done.add(it.codigo); });
-    cuatri = (cuatri === '1°C') ? '2°C' : '1°C';
+function optimizarCuatri(idx) {
+  ensurePlanner();
+  plannerState.cuatris[idx] = calcCuatri(idx);
+  savePlanner();
+  renderPlanificador();
+}
+
+function optimizarTodo() {
+  ensurePlanner();
+  if (!dependentsOf) buildDependents();
+  const cursando = planData.filter(i => i.estado === 'cursando').map(i => i.codigo);
+  plannerState.cuatris = cursando.length ? [cursando.slice()] : [];
+  let guard = 0, vacios = 0;
+  while (guard++ < 60) {
+    const idx = plannerState.cuatris.length;
+    const eleg = calcCuatri(idx);
+    if (eleg.length) { plannerState.cuatris.push(eleg); vacios = 0; }
+    else {
+      const coloc = new Set(); plannerState.cuatris.forEach(a => a.forEach(c => coloc.add(+c)));
+      const pend = planData.filter(i => !planMateriaHecha(i) && !coloc.has(i.codigo));
+      if (!pend.length) break;
+      plannerState.cuatris.push([]); vacios++;
+      if (vacios >= 2) { plannerState.cuatris.pop(); plannerState.cuatris.pop(); break; }
+    }
+    const coloc = new Set(); plannerState.cuatris.forEach(a => a.forEach(c => coloc.add(+c)));
+    if (!planData.filter(i => !planMateriaHecha(i) && !coloc.has(i.codigo)).length) break;
   }
-  while (semestres.length && !semestres[semestres.length - 1].materias.length) semestres.pop();
-  const noProgramadas = pendientes.filter(it => !scheduled.has(it.codigo));
-  return { semestres, noProgramadas, totalPendientes: pendientes.length };
+  while (plannerState.cuatris.length && !plannerState.cuatris[plannerState.cuatris.length - 1].length) plannerState.cuatris.pop();
+  savePlanner();
+  renderPlanificador();
+}
+
+function planAddMateria(idx, cod) {
+  ensurePlanner();
+  if (!Array.isArray(plannerState.cuatris[idx])) plannerState.cuatris[idx] = [];
+  if (!plannerState.cuatris[idx].includes(cod)) plannerState.cuatris[idx].push(cod);
+  savePlanner(); renderPlanificador();
+}
+function planRemoveMateria(idx, cod) {
+  ensurePlanner();
+  plannerState.cuatris[idx] = (plannerState.cuatris[idx] || []).filter(c => +c !== +cod);
+  savePlanner(); renderPlanificador();
+}
+function planAddCuatri() { ensurePlanner(); plannerState.cuatris.push([]); savePlanner(); renderPlanificador(); }
+function planRemoveCuatri(idx) { ensurePlanner(); plannerState.cuatris.splice(idx, 1); savePlanner(); renderPlanificador(); }
+
+function fmtAnios(n) { const a = n / 2; return a % 1 ? a.toFixed(1) : String(a); }
+
+function syncPlanControles() {
+  ensurePlanner();
+  const per = document.getElementById('plan-per-sem');
+  const start = document.getElementById('plan-start');
+  if (per) per.value = plannerState.perSem;
+  if (start) start.value = plannerState.startCuatri;
+  document.querySelectorAll('.franja-chk').forEach(chk => {
+    chk.checked = plannerState.franjas.includes(chk.value);
+  });
 }
 
 function renderPlanificador() {
   const out = document.getElementById('plan-output');
   const sum = document.getElementById('plan-summary');
   if (!out || !sum || !planData.length) return;
+  ensurePlanner();
+  if (!dependentsOf) buildDependents();
+  syncPlanControles();
 
-  const perSem = Math.max(1, Math.min(12, parseInt(document.getElementById('plan-per-sem').value, 10) || 6));
-  const startCuatri = document.getElementById('plan-start').value === '2°C' ? '2°C' : '1°C';
-  const { semestres, noProgramadas, totalPendientes } = computePlan(perSem, startCuatri);
+  const fr = franjasSet();
+  const pend = planData.filter(i => !planMateriaHecha(i));
+  const coloc = new Set(); plannerState.cuatris.forEach(a => (a || []).forEach(c => coloc.add(+c)));
+  const sinUbicar = pend.filter(i => !coloc.has(i.codigo)).length;
+  const nCuatri = plannerState.cuatris.filter(a => a && a.length).length;
 
-  if (!totalPendientes) {
-    sum.innerHTML = `<div class="plan-card-sum"><span class="plan-big">🎉 ¡Listo!</span><span class="plan-sub">No te quedan materias por cursar.</span></div>`;
-    out.innerHTML = '';
+  sum.innerHTML = `
+    <div class="plan-card-sum">
+      <div><span class="plan-big">${pend.length}</span><span class="plan-sub">materias por cursar</span></div>
+      <div><span class="plan-big">${nCuatri}</span><span class="plan-sub">cuatrimestres (~${fmtAnios(nCuatri)} años)</span></div>
+      <div><span class="plan-big">${sinUbicar}</span><span class="plan-sub">sin ubicar en el plan</span></div>
+    </div>`;
+
+  if (!plannerState.cuatris.length) {
+    out.innerHTML = `<div class="plan-empty">Armá tu plan: tocá <b>Calcular plan óptimo</b> para generarlo automáticamente, o <b>+ Cuatrimestre</b> para armarlo a mano e ir optimizando cada uno.</div>`;
     return;
   }
 
-  const nCuatri = semestres.filter(s => s.materias.length).length;
-  const anios = (nCuatri / 2);
-  sum.innerHTML = `
-    <div class="plan-card-sum">
-      <div><span class="plan-big">${totalPendientes}</span><span class="plan-sub">materias por cursar</span></div>
-      <div><span class="plan-big">${nCuatri}</span><span class="plan-sub">cuatrimestres (~${anios % 1 ? anios.toFixed(1) : anios} años)</span></div>
-    </div>`;
-
+  const cursandoSet = new Set(planData.filter(i => i.estado === 'cursando').map(i => i.codigo));
   let html = '';
-  let real = 0;
-  let proxMarcado = false;
-  semestres.forEach(s => {
-    if (!s.materias.length) return;
-    real++;
-    let cls = '', tag = '';
-    if (s.actual) { cls = ' plan-sem--actual'; tag = ' · en curso'; }
-    else if (!proxMarcado) { cls = ' plan-sem--next'; tag = ' · próximo'; proxMarcado = true; }
-    const chips = s.materias.map(it => {
-      return `<div class="plan-chip" data-codigo="${it.codigo}" title="${escAttr(it.materia)}">
+  plannerState.cuatris.forEach((arr, idx) => {
+    const tipo = planCuatriTipo(idx);
+    const done = planDoneHasta(idx);
+    const items = (arr || []).map(c => planData.find(i => i.codigo === +c)).filter(Boolean);
+    const asign = items.length ? asignarComisiones(items.map(i => i.codigo), fr) : [];
+    const choque = items.length && !asign;
+    const asignMap = {}; if (asign) asign.forEach(a => asignMap[a.cod] = a.com);
+    const actual = idx === 0 && arr.length && arr.every(c => cursandoSet.has(+c));
+    const proxIdx = cursandoSet.size ? 1 : 0;
+
+    const opciones = planData.filter(it => !planMateriaHecha(it) && !coloc.has(it.codigo))
+      .sort((a, b) => a.codigo - b.codigo)
+      .map(it => `<option value="${it.codigo}">${it.codigo} · ${escAttr(it.materia)}</option>`).join('');
+
+    const chips = items.map(it => {
+      const corrOk = (correlativas[it.codigo] || []).every(p => done.has(p));
+      const ofreceTipo = it.cuatri === tipo || it.cuatri === 'Transversal';
+      const sinComision = comisionesValidas(it.codigo, fr).length === 0;
+      const motivos = [];
+      if (!corrOk) motivos.push('correlativas pendientes');
+      if (!ofreceTipo) motivos.push('no se ofrece en ' + tipo);
+      if (sinComision) motivos.push('sin comisión en esas franjas');
+      const warn = motivos.length > 0;
+      const hor = asignMap[it.codigo] ? fmtComision(asignMap[it.codigo]) : '';
+      return `<div class="plan-chip${warn ? ' plan-chip--warn' : ''}" data-codigo="${it.codigo}" title="${escAttr(it.materia)}${warn ? ' — ' + motivos.join(', ') : ''}">
         <span class="plan-chip__code">${it.codigo}</span>
         <span class="plan-chip__name">${escAttr(it.materia)}</span>
-        <span class="plan-chip__anio">${it.cuatri === 'Transversal' ? 'Trans.' : it.anio + '°'}</span>
+        ${hor ? `<span class="plan-chip__hor">${hor}</span>` : ''}
+        <button class="plan-chip__del" data-del="${idx}|${it.codigo}" title="Quitar">✕</button>
       </div>`;
     }).join('');
+
+    let cls = '';
+    if (actual) cls = ' plan-sem--actual';
+    else if (idx === proxIdx) cls = ' plan-sem--next';
+    if (choque) cls += ' plan-sem--choque';
+
     html += `
       <div class="plan-sem${cls}">
         <div class="plan-sem__head">
-          <span class="plan-sem__n">Cuatrimestre ${real}${tag}</span>
-          <span class="plan-sem__cuatri">${s.cuatri} · ${s.materias.length} materia${s.materias.length > 1 ? 's' : ''}</span>
+          <span class="plan-sem__n">Cuatrimestre ${idx + 1}${actual ? ' · en curso' : (idx === proxIdx ? ' · próximo' : '')} <span class="plan-sem__cuatri">${tipo}</span></span>
+          <div class="plan-sem__actions">
+            <button class="btn btn--ghost btn--sm" data-opt="${idx}">Optimizar cuatri</button>
+            <button class="btn btn--danger" data-delcuatri="${idx}">Eliminar</button>
+          </div>
         </div>
-        <div class="plan-sem__list">${chips}</div>
+        ${choque ? `<div class="plan-choque">⚠️ Hay choque de horarios o materias sin comisión en las franjas elegidas.</div>` : ''}
+        <div class="plan-sem__list">${chips || '<span class="plan-sub" style="padding:4px">Sin materias.</span>'}</div>
+        <div class="plan-sem__add">
+          <select class="plan-add-sel" data-idx="${idx}"><option value="">+ Agregar materia…</option>${opciones}</select>
+        </div>
       </div>`;
   });
-
-  if (noProgramadas.length) {
-    html += `<div class="plan-warn">No pude ubicar ${noProgramadas.length} materia(s) — puede haber correlativas inconsistentes: ${noProgramadas.map(i => i.codigo).join(', ')}</div>`;
-  }
   out.innerHTML = html;
+  bindPlanEvents();
+}
 
-  // Click en una materia del plan → abrir su editor
-  out.querySelectorAll('.plan-chip').forEach(el =>
-    el.addEventListener('click', () => openModal(parseInt(el.dataset.codigo, 10))));
+function bindPlanEvents() {
+  const out = document.getElementById('plan-output');
+  out.querySelectorAll('[data-opt]').forEach(b => b.addEventListener('click', () => optimizarCuatri(+b.dataset.opt)));
+  out.querySelectorAll('[data-delcuatri]').forEach(b => b.addEventListener('click', () => planRemoveCuatri(+b.dataset.delcuatri)));
+  out.querySelectorAll('.plan-chip__del').forEach(b => b.addEventListener('click', e => {
+    e.stopPropagation();
+    const [idx, cod] = b.dataset.del.split('|');
+    planRemoveMateria(+idx, +cod);
+  }));
+  out.querySelectorAll('.plan-chip').forEach(el => el.addEventListener('click', () => openModal(parseInt(el.dataset.codigo, 10))));
+  out.querySelectorAll('.plan-add-sel').forEach(sel => sel.addEventListener('change', e => {
+    const cod = parseInt(e.target.value, 10);
+    if (cod) planAddMateria(+e.target.dataset.idx, cod);
+  }));
 }
 
 function initPlanificador() {
   const per = document.getElementById('plan-per-sem');
   const start = document.getElementById('plan-start');
-  if (per) per.addEventListener('input', renderPlanificador);
-  if (start) start.addEventListener('change', renderPlanificador);
+  const calc = document.getElementById('plan-calc');
+  const addC = document.getElementById('plan-add-cuatri');
+  if (per) per.addEventListener('change', () => { ensurePlanner(); plannerState.perSem = Math.max(1, Math.min(12, parseInt(per.value, 10) || 6)); savePlanner(); });
+  if (start) start.addEventListener('change', () => { ensurePlanner(); plannerState.startCuatri = start.value === '2°C' ? '2°C' : '1°C'; savePlanner(); renderPlanificador(); });
+  if (calc) calc.addEventListener('click', optimizarTodo);
+  if (addC) addC.addEventListener('click', planAddCuatri);
+  document.querySelectorAll('.franja-chk').forEach(chk => chk.addEventListener('change', () => {
+    ensurePlanner();
+    plannerState.franjas = [...document.querySelectorAll('.franja-chk')].filter(c => c.checked).map(c => c.value);
+    if (!plannerState.franjas.length) plannerState.franjas = ['manana', 'tarde', 'noche'];
+    savePlanner(); renderPlanificador();
+  }));
 }
 
 /* ════════════════════════════════════════════════════════
