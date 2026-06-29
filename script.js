@@ -1294,6 +1294,36 @@ function planRemoveMateria(idx, cod) {
 function planAddCuatri() { ensurePlanner(); plannerState.cuatris.push([]); savePlanner(); renderPlanificador(); }
 function planRemoveCuatri(idx) { ensurePlanner(); plannerState.cuatris.splice(idx, 1); savePlanner(); renderPlanificador(); }
 
+// Mueve una materia entre cuatris / paleta. from y to: índice numérico o 'palette'
+function planMoveMateria(from, cod, to) {
+  ensurePlanner();
+  cod = +cod;
+  if (from !== 'palette' && from != null) {
+    plannerState.cuatris[from] = (plannerState.cuatris[from] || []).filter(c => +c !== cod);
+  }
+  if (to !== 'palette' && to != null) {
+    if (!Array.isArray(plannerState.cuatris[to])) plannerState.cuatris[to] = [];
+    if (!plannerState.cuatris[to].includes(cod)) plannerState.cuatris[to].push(cod);
+  }
+  savePlanner(); renderPlanificador();
+}
+
+// Pares de materias que NO pueden coexistir (toda combinación de comisiones se solapa)
+function paresEnConflicto(codigos, fr) {
+  const set = new Set();
+  for (let i = 0; i < codigos.length; i++) {
+    for (let j = i + 1; j < codigos.length; j++) {
+      const A = comisionesValidas(codigos[i], fr), B = comisionesValidas(codigos[j], fr);
+      if (!A.length || !B.length) continue;
+      if (A.every(a => B.every(b => comisionesSolapan(a, b)))) { set.add(+codigos[i]); set.add(+codigos[j]); }
+    }
+  }
+  return set;
+}
+
+let dragData = null;       // { cod, from }
+let palFilter = '';        // texto del buscador de la paleta
+
 function fmtAnios(n) { const a = n / 2; return a % 1 ? a.toFixed(1) : String(a); }
 
 function syncPlanControles() {
@@ -1325,42 +1355,41 @@ function renderPlanificador() {
     <div class="plan-card-sum">
       <div><span class="plan-big">${pend.length}</span><span class="plan-sub">materias por cursar</span></div>
       <div><span class="plan-big">${nCuatri}</span><span class="plan-sub">cuatrimestres (~${fmtAnios(nCuatri)} años)</span></div>
-      <div><span class="plan-big">${sinUbicar}</span><span class="plan-sub">sin ubicar en el plan</span></div>
+      <div><span class="plan-big">${sinUbicar}</span><span class="plan-sub">sin ubicar</span></div>
     </div>`;
 
-  if (!plannerState.cuatris.length) {
-    out.innerHTML = `<div class="plan-empty">Armá tu plan: tocá <b>Calcular plan óptimo</b> para generarlo automáticamente, o <b>+ Cuatrimestre</b> para armarlo a mano e ir optimizando cada uno.</div>`;
-    return;
-  }
-
   const cursandoSet = new Set(planData.filter(i => i.estado === 'cursando').map(i => i.codigo));
-  let html = '';
+  const proxIdx = cursandoSet.size ? 1 : 0;
+
+  // ── Columna izquierda: cuatrimestres ──
+  let cols = '';
+  if (!plannerState.cuatris.length) {
+    cols = `<div class="plan-empty">Arrastrá materias desde la derecha, tocá <b>+ Cuatrimestre</b> para sumar uno, o <b>Calcular plan óptimo</b> para generarlo automáticamente.</div>`;
+  }
   plannerState.cuatris.forEach((arr, idx) => {
     const tipo = planCuatriTipo(idx);
     const done = planDoneHasta(idx);
     const items = (arr || []).map(c => planData.find(i => i.codigo === +c)).filter(Boolean);
-    const asign = items.length ? asignarComisiones(items.map(i => i.codigo), fr) : [];
+    const codigos = items.map(i => i.codigo);
+    const asign = items.length ? asignarComisiones(codigos, fr) : [];
     const choque = items.length && !asign;
+    const conflictSet = paresEnConflicto(codigos, fr);
     const asignMap = {}; if (asign) asign.forEach(a => asignMap[a.cod] = a.com);
     const actual = idx === 0 && arr.length && arr.every(c => cursandoSet.has(+c));
-    const proxIdx = cursandoSet.size ? 1 : 0;
-
-    const opciones = planData.filter(it => !planMateriaHecha(it) && !coloc.has(it.codigo))
-      .sort((a, b) => a.codigo - b.codigo)
-      .map(it => `<option value="${it.codigo}">${it.codigo} · ${escAttr(it.materia)}</option>`).join('');
 
     const chips = items.map(it => {
       const corrOk = (correlativas[it.codigo] || []).every(p => done.has(p));
       const ofreceTipo = it.cuatri === tipo || it.cuatri === 'Transversal';
       const sinComision = comisionesValidas(it.codigo, fr).length === 0;
+      const conflicto = conflictSet.has(it.codigo) || sinComision;
       const motivos = [];
+      if (conflictSet.has(it.codigo)) motivos.push('choca de día/horario con otra');
+      if (sinComision) motivos.push('sin comisión en esas franjas');
       if (!corrOk) motivos.push('correlativas pendientes');
       if (!ofreceTipo) motivos.push('no se ofrece en ' + tipo);
-      if (sinComision) motivos.push('sin comisión en esas franjas');
-      const warn = motivos.length > 0;
+      const cls = conflicto ? ' plan-chip--conflict' : (!corrOk || !ofreceTipo ? ' plan-chip--warn' : '');
       const hor = asignMap[it.codigo] ? fmtComision(asignMap[it.codigo]) : '';
-      return `<div class="plan-chip${warn ? ' plan-chip--warn' : ''}" data-codigo="${it.codigo}" title="${escAttr(it.materia)}${warn ? ' — ' + motivos.join(', ') : ''}">
-        <span class="plan-chip__code">${it.codigo}</span>
+      return `<div class="plan-chip${cls}" draggable="true" data-codigo="${it.codigo}" data-from="${idx}" title="${escAttr(it.materia)}${motivos.length ? ' — ' + motivos.join(', ') : ''}">
         <span class="plan-chip__name">${escAttr(it.materia)}</span>
         ${hor ? `<span class="plan-chip__hor">${hor}</span>` : ''}
         <button class="plan-chip__del" data-del="${idx}|${it.codigo}" title="Quitar">✕</button>
@@ -1372,28 +1401,50 @@ function renderPlanificador() {
     else if (idx === proxIdx) cls = ' plan-sem--next';
     if (choque) cls += ' plan-sem--choque';
 
-    html += `
-      <div class="plan-sem${cls}">
+    cols += `
+      <div class="plan-sem${cls}" data-drop="${idx}">
         <div class="plan-sem__head">
           <span class="plan-sem__n">Cuatrimestre ${idx + 1}${actual ? ' · en curso' : (idx === proxIdx ? ' · próximo' : '')} <span class="plan-sem__cuatri">${tipo}</span></span>
           <div class="plan-sem__actions">
-            <button class="btn btn--ghost btn--sm" data-opt="${idx}">Optimizar cuatri</button>
-            <button class="btn btn--danger" data-delcuatri="${idx}">Eliminar</button>
+            <button class="btn btn--ghost btn--sm" data-opt="${idx}">Optimizar</button>
+            <button class="icon-btn" data-delcuatri="${idx}" title="Eliminar cuatrimestre">✕</button>
           </div>
         </div>
-        ${choque ? `<div class="plan-choque">⚠️ Hay choque de horarios o materias sin comisión en las franjas elegidas.</div>` : ''}
-        <div class="plan-sem__list">${chips || '<span class="plan-sub" style="padding:4px">Sin materias.</span>'}</div>
-        <div class="plan-sem__add">
-          <select class="plan-add-sel" data-idx="${idx}"><option value="">+ Agregar materia…</option>${opciones}</select>
-        </div>
+        ${choque ? `<div class="plan-choque">⚠️ Choque de horarios o materias sin comisión en las franjas elegidas.</div>` : ''}
+        <div class="plan-sem__list" data-drop="${idx}">${chips || '<span class="plan-drop-hint">Soltá materias acá</span>'}</div>
       </div>`;
   });
-  out.innerHTML = html;
+
+  // ── Columna derecha: paleta de materias disponibles ──
+  const f = palFilter.trim().toLowerCase();
+  const disponibles = pend.filter(i => !coloc.has(i.codigo))
+    .filter(i => !f || i.materia.toLowerCase().includes(f) || String(i.codigo).includes(f))
+    .sort((a, b) => a.anio - b.anio || a.codigo - b.codigo);
+  const palItems = disponibles.map(it => {
+    const sinComision = comisionesValidas(it.codigo, fr).length === 0;
+    return `<div class="pal-materia${sinComision ? ' pal-materia--nofranja' : ''}" draggable="true" data-codigo="${it.codigo}" data-from="palette" title="${escAttr(it.materia)}${sinComision ? ' — sin comisión en esas franjas' : ''}">
+      <span class="pal-materia__name">${escAttr(it.materia)}</span>
+      <span class="pal-materia__meta">${it.cuatri === 'Transversal' ? 'Trans.' : it.anio + '° · ' + it.cuatri}${sinComision ? ' · sin franja' : ''}</span>
+    </div>`;
+  }).join('');
+
+  out.innerHTML = `
+    <div class="plan-board">
+      <div class="plan-cols" id="plan-cols">${cols}</div>
+      <aside class="plan-palette" data-drop="palette">
+        <div class="plan-palette__head">
+          <span>Materias disponibles <b>${disponibles.length}</b></span>
+          <input id="plan-pal-search" class="pal-search" type="search" placeholder="Buscar…" value="${escAttr(palFilter)}">
+        </div>
+        <div class="pal-list" id="pal-list">${palItems || '<span class="plan-drop-hint" style="padding:10px">No quedan materias disponibles. Arrastrá una acá para sacarla de un cuatrimestre.</span>'}</div>
+      </aside>
+    </div>`;
   bindPlanEvents();
 }
 
 function bindPlanEvents() {
   const out = document.getElementById('plan-output');
+
   out.querySelectorAll('[data-opt]').forEach(b => b.addEventListener('click', () => optimizarCuatri(+b.dataset.opt)));
   out.querySelectorAll('[data-delcuatri]').forEach(b => b.addEventListener('click', () => planRemoveCuatri(+b.dataset.delcuatri)));
   out.querySelectorAll('.plan-chip__del').forEach(b => b.addEventListener('click', e => {
@@ -1401,11 +1452,48 @@ function bindPlanEvents() {
     const [idx, cod] = b.dataset.del.split('|');
     planRemoveMateria(+idx, +cod);
   }));
-  out.querySelectorAll('.plan-chip').forEach(el => el.addEventListener('click', () => openModal(parseInt(el.dataset.codigo, 10))));
-  out.querySelectorAll('.plan-add-sel').forEach(sel => sel.addEventListener('change', e => {
-    const cod = parseInt(e.target.value, 10);
-    if (cod) planAddMateria(+e.target.dataset.idx, cod);
+  out.querySelectorAll('.plan-chip').forEach(el => el.addEventListener('click', e => {
+    if (e.target.closest('.plan-chip__del')) return;
+    openModal(parseInt(el.dataset.codigo, 10));
   }));
+  out.querySelectorAll('.pal-materia').forEach(el => el.addEventListener('click', () => openModal(parseInt(el.dataset.codigo, 10))));
+
+  // Drag & drop
+  out.querySelectorAll('[draggable="true"]').forEach(el => {
+    el.addEventListener('dragstart', e => {
+      const from = el.dataset.from === 'palette' ? 'palette' : +el.dataset.from;
+      dragData = { cod: +el.dataset.codigo, from };
+      el.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      try { e.dataTransfer.setData('text/plain', String(el.dataset.codigo)); } catch {}
+    });
+    el.addEventListener('dragend', () => { el.classList.remove('dragging'); dragData = null; });
+  });
+
+  out.querySelectorAll('[data-drop]').forEach(zone => {
+    zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+    zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+    zone.addEventListener('drop', e => {
+      e.preventDefault();
+      zone.classList.remove('drag-over');
+      if (!dragData) return;
+      const dest = zone.dataset.drop === 'palette' ? 'palette' : +zone.dataset.drop;
+      if (dragData.from === dest) return;
+      planMoveMateria(dragData.from, dragData.cod, dest);
+    });
+  });
+
+  const search = document.getElementById('plan-pal-search');
+  if (search) {
+    search.addEventListener('input', e => {
+      palFilter = e.target.value;
+      const ff = palFilter.trim().toLowerCase();
+      document.querySelectorAll('#pal-list .pal-materia').forEach(el => {
+        const txt = el.textContent.toLowerCase();
+        el.style.display = (!ff || txt.includes(ff)) ? '' : 'none';
+      });
+    });
+  }
 }
 
 function initPlanificador() {

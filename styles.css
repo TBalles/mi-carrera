@@ -752,7 +752,57 @@ button { font-family: inherit; cursor: pointer; }
 .plan-chip__hor { font-size: .68rem; font-weight: 600; color: var(--accent); background: var(--accent-soft); padding: 2px 7px; border-radius: 6px; white-space: nowrap; }
 .plan-chip__del { border: 0; background: transparent; color: var(--muted); font-size: .72rem; width: 18px; height: 18px; border-radius: 5px; line-height: 1; }
 .plan-chip__del:hover { background: rgba(248,113,113,.15); color: #f87171; }
-.plan-chip--warn { border-color: color-mix(in srgb, #f87171 55%, transparent); background: rgba(248,113,113,.08); }
+.plan-chip--warn { border-color: color-mix(in srgb, #f59e0b 55%, transparent); background: rgba(245,158,11,.08); }
+.plan-chip--conflict { border-color: #ef4444; background: rgba(239,68,68,.14); }
+.plan-chip--conflict .plan-chip__hor { color: #f87171; background: rgba(239,68,68,.16); }
+
+/* ── Armador: tablero de dos columnas ───────────── */
+.plan-board { display: grid; grid-template-columns: 1fr 300px; gap: 16px; align-items: start; }
+.plan-cols { display: grid; gap: 14px; }
+
+.plan-palette {
+  position: sticky; top: 88px;
+  background: var(--card); border: 1px solid var(--line);
+  -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur);
+  border-radius: var(--radius); box-shadow: var(--shadow), var(--glass-hi);
+  overflow: hidden; max-height: calc(100vh - 110px); display: flex; flex-direction: column;
+  transition: outline .15s var(--ease);
+}
+.plan-palette__head { padding: 14px 16px 10px; border-bottom: 1px solid var(--line); display: flex; flex-direction: column; gap: 8px; }
+.plan-palette__head span { font-size: .8rem; color: var(--muted); font-weight: 600; }
+.plan-palette__head b { color: var(--accent); }
+.pal-search {
+  padding: 8px 11px; border-radius: 10px; border: 1px solid var(--line);
+  background: var(--card-soft); color: var(--ink); font-size: .85rem; font-family: inherit; outline: none;
+}
+.pal-search:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.pal-list { padding: 10px; overflow-y: auto; display: grid; gap: 7px; }
+
+.pal-materia {
+  display: flex; flex-direction: column; gap: 2px;
+  padding: 8px 11px; border-radius: 10px;
+  border: 1px solid var(--line); background: var(--card-soft);
+  cursor: grab; transition: transform .2s var(--ease-out), border-color .2s var(--ease), box-shadow .2s var(--ease-out);
+}
+.pal-materia:hover { border-color: var(--accent); transform: translateY(-1px); box-shadow: 0 6px 16px rgba(0,0,0,.3); }
+.pal-materia:active { cursor: grabbing; }
+.pal-materia__name { font-size: .82rem; font-weight: 600; line-height: 1.25; }
+.pal-materia__meta { font-size: .68rem; color: var(--muted); font-weight: 500; }
+.pal-materia--nofranja { opacity: .5; }
+
+/* Zonas de drop y arrastre */
+.plan-sem__list { min-height: 42px; }
+.plan-drop-hint { font-size: .78rem; color: var(--muted); font-style: italic; padding: 6px 4px; display: inline-block; }
+.drag-over { outline: 2px dashed var(--accent); outline-offset: -4px; border-radius: 12px; background: var(--accent-soft); }
+.plan-palette.drag-over { outline-offset: -3px; }
+.dragging { opacity: .45; }
+.plan-chip { cursor: grab; }
+.plan-chip:active { cursor: grabbing; }
+
+@media (max-width: 880px) {
+  .plan-board { grid-template-columns: 1fr; }
+  .plan-palette { position: static; max-height: 320px; order: -1; }
+}
 
 @media (max-width: 560px) {
   .plan-card-sum { gap: 20px; }
