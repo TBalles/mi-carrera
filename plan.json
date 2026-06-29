@@ -486,33 +486,6 @@
         "cuatri": "1°C"
     },
     {
-        "codigo": 3672,
-        "materia": "Electiva I",
-        "trayecto": "Desarrollo de Software",
-        "condicion": "No aprobada",
-        "nota": 0,
-        "anio": 5,
-        "cuatri": "1°C"
-    },
-    {
-        "codigo": 3673,
-        "materia": "Electiva II",
-        "trayecto": "Desarrollo de Software",
-        "condicion": "No aprobada",
-        "nota": 0,
-        "anio": 5,
-        "cuatri": "2°C"
-    },
-    {
-        "codigo": 3674,
-        "materia": "Electiva III",
-        "trayecto": "Desarrollo de Software",
-        "condicion": "No aprobada",
-        "nota": 0,
-        "anio": 5,
-        "cuatri": "2°C"
-    },
-    {
         "codigo": 911,
         "materia": "Computación I",
         "trayecto": null,
