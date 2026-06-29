@@ -392,24 +392,28 @@ function renderAll() {
 }
 
 function getStats() {
-  const total       = planData.length;
-  const aprobadas   = planData.filter(i => i.estado === 'aprobada').length;
+  // Para el % de carrera, las electivas cuentan sólo REQ_ELECTIVAS (no todas)
+  const oblig       = planData.filter(i => !esElectiva(i));
+  const electAprob  = electivasHechas();
+  const total       = oblig.length + REQ_ELECTIVAS;
+  const aprobadasReal = planData.filter(i => i.estado === 'aprobada').length;
+  const aprobadas   = oblig.filter(i => i.estado === 'aprobada').length + Math.min(REQ_ELECTIVAS, planData.filter(i => esElectiva(i) && i.estado === 'aprobada').length);
   const cursando    = planData.filter(i => i.estado === 'cursando').length;
   const pendientes  = planData.filter(i => i.estado === 'pendiente de final').length;
   const disponibles = planData.filter(i => displayStatus(i) === 'disponible').length;
   const bloqueadas  = planData.filter(i => displayStatus(i) === 'bloqueada').length;
-  const restantes   = total - aprobadas;
+  const restantes   = Math.max(0, total - aprobadas);
   const porcentaje  = total ? (aprobadas / total * 100) : 0;
   const notas       = planData.filter(i => i.estado === 'aprobada' && i.nota > 0).map(i => i.nota);
   const promedio    = notas.length ? notas.reduce((a, b) => a + b, 0) / notas.length : null;
-  return { total, aprobadas, cursando, pendientes, disponibles, bloqueadas, restantes, porcentaje, promedio };
+  return { total, aprobadas: aprobadasReal, aprobadasReq: aprobadas, cursando, pendientes, disponibles, bloqueadas, restantes, porcentaje, promedio };
 }
 
 function renderStats() {
   const s = getStats();
   document.getElementById('st-porcentaje').textContent  = s.porcentaje.toFixed(1) + '%';
   document.getElementById('st-progress').style.width    = s.porcentaje + '%';
-  document.getElementById('st-aprobadas').textContent   = s.aprobadas;
+  document.getElementById('st-aprobadas').textContent   = s.aprobadasReq;
   document.getElementById('st-total').textContent       = s.total;
   document.getElementById('st-promedio').textContent    = s.promedio !== null ? s.promedio.toFixed(2) : '—';
   document.getElementById('st-disponibles').textContent = s.disponibles;
@@ -438,7 +442,7 @@ function renderMalla() {
   const anios = [1, 2, 3, 4, 5];
   let html = '';
   anios.forEach(anio => {
-    const delAnio = planData.filter(i => i.anio === anio);
+    const delAnio = planData.filter(i => i.anio === anio && !esElectiva(i));
     if (!delAnio.length) return;
     const aprob = delAnio.filter(i => i.estado === 'aprobada').length;
     html += `
@@ -461,6 +465,18 @@ function renderMalla() {
         </div>
         <div class="anio__body" style="grid-template-columns:1fr">
           <div class="cuatri"><div class="cuatri__list">${trans.map(subjectCard).join('')}</div></div>
+        </div>
+      </div>`;
+  }
+  const elect = planData.filter(esElectiva);
+  if (elect.length) {
+    html += `
+      <div class="anio">
+        <div class="anio__head">Electivas <span style="font-weight:500;color:var(--muted)">(cursás ${REQ_ELECTIVAS} de ${elect.length})</span>
+          <span class="chip-count">${electivasHechas()}/${REQ_ELECTIVAS} hechas</span>
+        </div>
+        <div class="anio__body" style="grid-template-columns:1fr">
+          <div class="cuatri"><div class="cuatri__list">${elect.map(subjectCard).join('')}</div></div>
         </div>
       </div>`;
   }
@@ -862,11 +878,13 @@ function clampNum(v, a, b) { return Math.max(a, Math.min(b, v)); }
 
 // Columna cronológica de cada materia (transversales primero)
 function grafoCol(item) {
+  if (esElectiva(item)) return 11;          // columna aparte al final
   if (item.cuatri === 'Transversal') return 0;
   return (item.anio - 1) * 2 + (item.cuatri === '1°C' ? 1 : 2);
 }
 function grafoColLabel(col) {
   if (col === 0) return 'Transv.';
+  if (col === 11) return 'Electivas';
   const anio = Math.floor((col - 1) / 2) + 1;
   return `${anio}° ${col % 2 === 1 ? '1°C' : '2°C'}`;
 }
@@ -1140,6 +1158,11 @@ function initGrafo() {
 // Una materia ya "no hay que cursarla" si está aprobada o pendiente de final
 function planMateriaHecha(item) { return item.estado === 'aprobada' || item.estado === 'pendiente de final'; }
 
+// Electivas: hay que cursar sólo REQ_ELECTIVAS de todas las disponibles
+const REQ_ELECTIVAS = 3;
+function esElectiva(item) { return item && (item.electiva === true || item.trayecto === 'Electivas'); }
+function electivasHechas() { return planData.filter(i => esElectiva(i) && planMateriaHecha(i)).length; }
+
 const DIA_CORTO = { LU: 'Lun', MA: 'Mar', MI: 'Mié', JU: 'Jue', VI: 'Vie', SA: 'Sáb' };
 const GRID_DIAS = [['LU', 'Lun'], ['MA', 'Mar'], ['MI', 'Mié'], ['JU', 'Jue'], ['VI', 'Vie'], ['SA', 'Sáb']];
 const GRID_TURNOS = [['manana', 'Mañana'], ['tarde', 'Tarde'], ['noche', 'Noche']];
@@ -1278,18 +1301,24 @@ function calcCuatri(idx) {
   const tipo = planCuatriTipo(idx);
   const enOtros = new Set();
   plannerState.cuatris.forEach((arr, k) => { if (k !== idx) (arr || []).forEach(e => enOtros.add(+e.c)); });
-  const cand = planData.filter(it =>
-    !planMateriaHecha(it) && !done.has(it.codigo) && !enOtros.has(it.codigo) &&
-    (it.cuatri === tipo || it.cuatri === 'Transversal') &&
-    (correlativas[it.codigo] || []).every(p => done.has(p)) &&
-    comisionesValidas(it.codigo, fr).length > 0
-  );
+  // ¿cuántas electivas faltan? = REQ - aprobadas - ya puestas en otros cuatris
+  const electEnOtros = [...enOtros].filter(c => esElectiva(planData.find(m => m.codigo === +c))).length;
+  let electSlots = Math.max(0, REQ_ELECTIVAS - electivasHechas() - electEnOtros);
+  const cand = planData.filter(it => {
+    if (planMateriaHecha(it) || done.has(it.codigo) || enOtros.has(it.codigo)) return false;
+    if (!(correlativas[it.codigo] || []).every(p => done.has(p))) return false;
+    if (comisionesValidas(it.codigo, fr).length === 0) return false;
+    if (esElectiva(it)) return electSlots > 0;                 // electivas: en cualquier cuatri, hasta cubrir las que faltan
+    return it.cuatri === tipo || it.cuatri === 'Transversal';  // obligatorias: respetan la oferta del cuatri
+  });
   const cpl = planCplFactory();
   cand.sort((a, b) => cpl(b.codigo) - cpl(a.codigo) || a.anio - b.anio || a.codigo - b.codigo);
   const eleg = [];
+  let electTomadas = 0;
   for (const it of cand) {
     if (eleg.length >= plannerState.perSem) break;
-    if (asignarComisiones([...eleg, it.codigo], fr)) eleg.push(it.codigo);
+    if (esElectiva(it) && electTomadas >= electSlots) continue;
+    if (asignarComisiones([...eleg, it.codigo], fr)) { eleg.push(it.codigo); if (esElectiva(it)) electTomadas++; }
   }
   // Guardar la comisión elegida (índice) para reflejarla en la grilla
   const asign = asignarComisiones(eleg, fr) || [];
@@ -1309,20 +1338,25 @@ function optimizarTodo() {
   if (!dependentsOf) buildDependents();
   const cursando = planData.filter(i => i.estado === 'cursando').map(i => ({ c: i.codigo, k: null }));
   plannerState.cuatris = cursando.length ? [cursando] : [];
-  const colocSet = () => { const s = new Set(); plannerState.cuatris.forEach(a => a.forEach(e => s.add(+e.c))); return s; };
+  // materias que todavía faltan ubicar (electivas cuentan sólo las que faltan para llegar a REQ)
+  const restante = () => {
+    const c = new Set(); plannerState.cuatris.forEach(a => a.forEach(e => c.add(+e.c)));
+    const obl = planData.filter(i => !planMateriaHecha(i) && !esElectiva(i) && !c.has(i.codigo)).length;
+    const electPuestas = [...c].filter(x => esElectiva(planData.find(m => m.codigo === +x))).length;
+    const electFaltan = Math.max(0, REQ_ELECTIVAS - electivasHechas() - electPuestas);
+    return obl + electFaltan;
+  };
   let guard = 0, vacios = 0;
   while (guard++ < 60) {
     const idx = plannerState.cuatris.length;
     const eleg = calcCuatri(idx);
     if (eleg.length) { plannerState.cuatris.push(eleg); vacios = 0; }
     else {
-      const coloc = colocSet();
-      if (!planData.filter(i => !planMateriaHecha(i) && !coloc.has(i.codigo)).length) break;
+      if (!restante()) break;
       plannerState.cuatris.push([]); vacios++;
       if (vacios >= 2) { plannerState.cuatris.pop(); plannerState.cuatris.pop(); break; }
     }
-    const coloc = colocSet();
-    if (!planData.filter(i => !planMateriaHecha(i) && !coloc.has(i.codigo)).length) break;
+    if (!restante()) break;
   }
   while (plannerState.cuatris.length && !plannerState.cuatris[plannerState.cuatris.length - 1].length) plannerState.cuatris.pop();
   savePlanner();
@@ -1408,13 +1442,18 @@ function renderPlanificador() {
 
   const fr = franjasSet();
   const pend = planData.filter(i => !planMateriaHecha(i));
-  const coloc = new Set(); plannerState.cuatris.forEach(a => (a || []).forEach(c => coloc.add(+c)));
-  const sinUbicar = pend.filter(i => !coloc.has(i.codigo)).length;
+  const coloc = new Set(); plannerState.cuatris.forEach(a => (a || []).forEach(e => coloc.add(+e.c)));
+  // conteos electiva-aware (sólo hacen falta REQ_ELECTIVAS de todas las electivas)
+  const oblPend = planData.filter(i => !planMateriaHecha(i) && !esElectiva(i));
+  const electTotalFaltan = Math.max(0, REQ_ELECTIVAS - electivasHechas());
+  const electPuestas = [...coloc].filter(c => esElectiva(planData.find(m => m.codigo === +c))).length;
+  const porCursar = oblPend.length + electTotalFaltan;
+  const sinUbicar = oblPend.filter(i => !coloc.has(i.codigo)).length + Math.max(0, electTotalFaltan - electPuestas);
   const nCuatri = plannerState.cuatris.filter(a => a && a.length).length;
 
   sum.innerHTML = `
     <div class="plan-card-sum">
-      <div><span class="plan-big">${pend.length}</span><span class="plan-sub">materias por cursar</span></div>
+      <div><span class="plan-big">${porCursar}</span><span class="plan-sub">materias por cursar (incl. ${electTotalFaltan} electiva${electTotalFaltan !== 1 ? 's' : ''})</span></div>
       <div><span class="plan-big">${nCuatri}</span><span class="plan-sub">cuatrimestres (~${fmtAnios(nCuatri)} años)</span></div>
       <div><span class="plan-big">${sinUbicar}</span><span class="plan-sub">sin ubicar</span></div>
     </div>`;
