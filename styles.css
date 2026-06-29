@@ -786,9 +786,30 @@ button { font-family: inherit; cursor: pointer; }
 }
 .pal-materia:hover { border-color: var(--accent); transform: translateY(-1px); box-shadow: 0 6px 16px rgba(0,0,0,.3); }
 .pal-materia:active { cursor: grabbing; }
-.pal-materia__name { font-size: .82rem; font-weight: 600; line-height: 1.25; }
-.pal-materia__meta { font-size: .68rem; color: var(--muted); font-weight: 500; }
-.pal-materia--nofranja { opacity: .5; }
+.pal-materia { border-left: 3px solid var(--line-strong); }
+.pal-materia__top { display: flex; align-items: center; gap: 7px; }
+.pal-materia__name { font-size: .82rem; font-weight: 600; line-height: 1.2; }
+.pal-materia__meta { font-size: .67rem; color: var(--muted); font-weight: 500; }
+.pal-materia--nofranja { opacity: .55; }
+.pal-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; background: var(--bloqueada); }
+
+/* Colores de estado (igual que el plan) */
+.pal-materia--aprobada   { border-left-color: var(--aprobada); }
+.pal-materia--cursando   { border-left-color: var(--cursando); }
+.pal-materia--pendiente  { border-left-color: var(--pendiente); }
+.pal-materia--disponible { border-left-color: var(--disponible); }
+.pal-materia--bloqueada  { border-left-color: var(--bloqueada); }
+.pal-materia--aprobada   .pal-dot { background: var(--aprobada); }
+.pal-materia--cursando   .pal-dot { background: var(--cursando); }
+.pal-materia--pendiente  .pal-dot { background: var(--pendiente); }
+.pal-materia--disponible .pal-dot { background: var(--disponible); }
+.pal-materia--bloqueada  .pal-dot { background: var(--bloqueada); }
+
+/* Comisiones (slots día+turno) */
+.pal-materia__slots { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 3px; }
+.pal-slot { font-size: .6rem; font-weight: 600; color: var(--ink-soft); background: rgba(255,255,255,.05); border: 1px solid var(--line); padding: 1px 5px; border-radius: 5px; white-space: nowrap; }
+:root[data-theme="light"] .pal-slot { background: rgba(15,23,42,.04); }
+.pal-slot--no { color: #f87171; border-color: rgba(248,113,113,.4); background: rgba(248,113,113,.1); }
 
 /* Zonas de drop y arrastre */
 .plan-sem__list { min-height: 42px; }

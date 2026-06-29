@@ -1229,6 +1229,22 @@ function entryComision(entry, fr) {
   }
   return coms[0];
 }
+// Slots distintos (día + turno) en que se ofrece una materia, según franjas
+const TURNO_LBL = { manana: 'mañ', tarde: 'tar', noche: 'noc' };
+function slotsMateria(cod, fr) {
+  const coms = comisionesValidas(cod, fr);
+  if (!coms.length) return [];
+  if (coms.some(c => c._virtual)) return ['a distancia'];
+  const orden = { LU: 0, MA: 1, MI: 2, JU: 3, VI: 4, SA: 5 };
+  const tOrden = { manana: 0, tarde: 1, noche: 2 };
+  const set = new Set();
+  coms.forEach(c => (c.horarios || []).forEach(h => { if (h.inicio) set.add(h.dia + '|' + franjaDeHorario(h)); }));
+  return [...set].sort((a, b) => {
+    const [da, ta] = a.split('|'), [db, tb] = b.split('|');
+    return (orden[da] - orden[db]) || (tOrden[ta] - tOrden[tb]);
+  }).map(k => { const [d, t] = k.split('|'); return `${DIA_CORTO[d]} ${TURNO_LBL[t]}`; });
+}
+
 // Comisión de una materia que cae en una celda (día + turno) concreta
 function comisionParaCelda(cod, dia, turno, fr) {
   const coms = comisionesValidas(cod, fr);
@@ -1493,9 +1509,15 @@ function renderPlanificador() {
     .sort((a, b) => a.anio - b.anio || a.codigo - b.codigo);
   const palItems = disponibles.map(it => {
     const sinComision = comisionesValidas(it.codigo, fr).length === 0;
-    return `<div class="pal-materia${sinComision ? ' pal-materia--nofranja' : ''}" draggable="true" data-codigo="${it.codigo}" data-from="palette" title="${escAttr(it.materia)}${sinComision ? ' — sin comisión en esas franjas' : ''}">
-      <span class="pal-materia__name">${escAttr(it.materia)}</span>
-      <span class="pal-materia__meta">${it.cuatri === 'Transversal' ? 'Trans.' : it.anio + '° · ' + it.cuatri}${sinComision ? ' · sin franja' : ''}</span>
+    const st = displayStatus(it);
+    const slots = slotsMateria(it.codigo, fr);
+    const slotsHtml = slots.length
+      ? `<span class="pal-materia__slots">${slots.map(s => `<span class="pal-slot">${s}</span>`).join('')}</span>`
+      : (sinComision ? `<span class="pal-materia__slots"><span class="pal-slot pal-slot--no">sin franja</span></span>` : '');
+    return `<div class="pal-materia pal-materia--${st}${sinComision ? ' pal-materia--nofranja' : ''}" draggable="true" data-codigo="${it.codigo}" data-from="palette" title="${escAttr(it.materia)} — ${ESTADO_LABEL[it.estado] || st}${sinComision ? ' · sin comisión en esas franjas' : ''}">
+      <span class="pal-materia__top"><i class="pal-dot"></i><span class="pal-materia__name">${escAttr(it.materia)}</span></span>
+      <span class="pal-materia__meta">${it.codigo} · ${it.cuatri === 'Transversal' ? 'Trans.' : it.anio + '° ' + it.cuatri}</span>
+      ${slotsHtml}
     </div>`;
   }).join('');
 
