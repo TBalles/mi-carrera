@@ -878,13 +878,12 @@ function clampNum(v, a, b) { return Math.max(a, Math.min(b, v)); }
 
 // Columna cronológica de cada materia (transversales primero)
 function grafoCol(item) {
-  if (esElectiva(item)) return 11;          // columna aparte al final
+  if (esElectiva(item)) return 10;          // junto a 5° año (no tan lejos a la derecha)
   if (item.cuatri === 'Transversal') return 0;
   return (item.anio - 1) * 2 + (item.cuatri === '1°C' ? 1 : 2);
 }
 function grafoColLabel(col) {
   if (col === 0) return 'Transv.';
-  if (col === 11) return 'Electivas';
   const anio = Math.floor((col - 1) / 2) + 1;
   return `${anio}° ${col % 2 === 1 ? '1°C' : '2°C'}`;
 }
@@ -1162,6 +1161,11 @@ function planMateriaHecha(item) { return item.estado === 'aprobada' || item.esta
 const REQ_ELECTIVAS = 3;
 function esElectiva(item) { return item && (item.electiva === true || item.trayecto === 'Electivas'); }
 function electivasHechas() { return planData.filter(i => esElectiva(i) && planMateriaHecha(i)).length; }
+function itemPorCod(cod) { return planData.find(i => i.codigo === +cod); }
+function esAnual(item) { return !!(item && item.anual); }
+function esCualquierHorario(item) { return !!(item && (item.cualquierHorario || item.anual)); }
+// Una materia se puede planificar en cualquier cuatrimestre (no la ata la oferta 1°C/2°C)
+function cualquierCuatri(item) { return esElectiva(item) || esAnual(item); }
 
 const DIA_CORTO = { LU: 'Lun', MA: 'Mar', MI: 'Mié', JU: 'Jue', VI: 'Vie', SA: 'Sáb' };
 const GRID_DIAS = [['LU', 'Lun'], ['MA', 'Mar'], ['MI', 'Mié'], ['JU', 'Jue'], ['VI', 'Vie'], ['SA', 'Sáb']];
@@ -1194,6 +1198,7 @@ function franjaDeHorario(h) {
 // Comisiones de una materia válidas para las franjas elegidas.
 // Sin oferta cargada => comisión "virtual" (sin restricción de horario).
 function comisionesValidas(cod, fr) {
+  if (esCualquierHorario(itemPorCod(cod))) return [{ _virtual: true, horarios: [] }];   // anual / sin horario fijo
   const entry = oferta[String(cod)];
   if (!entry || !entry.length) return [{ _virtual: true, horarios: [] }];
   return entry.filter(com => (com.horarios || []).every(h => {
@@ -1309,10 +1314,14 @@ function calcCuatri(idx) {
     if (!(correlativas[it.codigo] || []).every(p => done.has(p))) return false;
     if (comisionesValidas(it.codigo, fr).length === 0) return false;
     if (esElectiva(it)) return electSlots > 0;                 // electivas: en cualquier cuatri, hasta cubrir las que faltan
+    if (cualquierCuatri(it)) return true;                      // anual / sin horario: cualquier cuatri
     return it.cuatri === tipo || it.cuatri === 'Transversal';  // obligatorias: respetan la oferta del cuatri
   });
+  // Prioridad: camino crítico (desbloquea más adelante) y, a igualdad, la más
+  // restringida en horario primero (mejor empaque ⇒ menos cuatrimestres)
   const cpl = planCplFactory();
-  cand.sort((a, b) => cpl(b.codigo) - cpl(a.codigo) || a.anio - b.anio || a.codigo - b.codigo);
+  const nComs = c => comisionesValidas(c, fr).filter(x => !x._virtual).length || 99;
+  cand.sort((a, b) => cpl(b.codigo) - cpl(a.codigo) || nComs(a.codigo) - nComs(b.codigo) || a.anio - b.anio || a.codigo - b.codigo);
   const eleg = [];
   let electTomadas = 0;
   for (const it of cand) {
@@ -1358,6 +1367,15 @@ function optimizarTodo() {
     }
     if (!restante()) break;
   }
+  // Materias anuales: ocupan 2 cuatrimestres consecutivos (se cursan todo el año).
+  // Tomamos una foto de dónde están ANTES de agregar, para no encadenar (10→11→12…).
+  const anualesEn = [];
+  plannerState.cuatris.forEach((arr, k) => arr.forEach(e => { if (esAnual(itemPorCod(e.c))) anualesEn.push({ k, c: +e.c }); }));
+  anualesEn.forEach(({ k, c }) => {
+    const next = k + 1;
+    if (!plannerState.cuatris[next]) plannerState.cuatris[next] = [];
+    if (!plannerState.cuatris[next].some(x => +x.c === c)) plannerState.cuatris[next].push({ c, k: null });
+  });
   while (plannerState.cuatris.length && !plannerState.cuatris[plannerState.cuatris.length - 1].length) plannerState.cuatris.pop();
   savePlanner();
   renderPlanificador();
@@ -1365,11 +1383,15 @@ function optimizarTodo() {
 
 function cuatriHas(idx, cod) { return (plannerState.cuatris[idx] || []).some(e => +e.c === +cod); }
 
+// Quita una materia de TODOS los cuatris (evita duplicados en cualquier cuatrimestre)
+function planQuitarDeTodos(cod) {
+  plannerState.cuatris = plannerState.cuatris.map(arr => (arr || []).filter(e => +e.c !== +cod));
+}
 function planAddMateria(idx, cod, k = null) {
   ensurePlanner();
+  planQuitarDeTodos(+cod);
   if (!Array.isArray(plannerState.cuatris[idx])) plannerState.cuatris[idx] = [];
-  if (!cuatriHas(idx, cod)) plannerState.cuatris[idx].push({ c: +cod, k });
-  else if (k != null) plannerState.cuatris[idx].find(e => +e.c === +cod).k = k;
+  plannerState.cuatris[idx].push({ c: +cod, k });
   savePlanner(); renderPlanificador();
 }
 function planRemoveMateria(idx, cod) {
@@ -1380,17 +1402,14 @@ function planRemoveMateria(idx, cod) {
 function planAddCuatri() { ensurePlanner(); plannerState.cuatris.push([]); savePlanner(); renderPlanificador(); }
 function planRemoveCuatri(idx) { ensurePlanner(); plannerState.cuatris.splice(idx, 1); savePlanner(); renderPlanificador(); }
 
-// Mueve una materia entre cuatris / paleta. from y to: índice numérico o 'palette'. k = comisión elegida
+// Mueve una materia a un cuatri / paleta. Quita primero cualquier copia previa en otros cuatris.
 function planMoveMateria(from, cod, to, k = null) {
   ensurePlanner();
   cod = +cod;
-  if (from !== 'palette' && from != null) {
-    plannerState.cuatris[from] = (plannerState.cuatris[from] || []).filter(e => +e.c !== cod);
-  }
+  planQuitarDeTodos(cod);
   if (to !== 'palette' && to != null) {
     if (!Array.isArray(plannerState.cuatris[to])) plannerState.cuatris[to] = [];
-    if (!cuatriHas(to, cod)) plannerState.cuatris[to].push({ c: cod, k });
-    else if (k != null) plannerState.cuatris[to].find(e => +e.c === cod).k = k;
+    plannerState.cuatris[to].push({ c: cod, k });
   }
   savePlanner(); renderPlanificador();
 }
@@ -1501,14 +1520,13 @@ function renderPlanificador() {
     const stripChips = sinHorario.map(({ entry, item }) => {
       const sinComision = comisionesValidas(item.codigo, fr).length === 0;
       const corrOk = (correlativas[item.codigo] || []).every(p => done.has(p));
-      const ofreceTipo = item.cuatri === tipo || item.cuatri === 'Transversal';
+      const ofreceTipo = cualquierCuatri(item) || item.cuatri === tipo || item.cuatri === 'Transversal';
       const motivos = [];
       if (sinComision) motivos.push('sin comisión en esas franjas');
       if (!corrOk) motivos.push('correlativas pendientes');
       if (!ofreceTipo) motivos.push('no se ofrece en ' + tipo);
       const cls = sinComision ? ' plan-chip--conflict' : (motivos.length ? ' plan-chip--warn' : '');
-      const ce = entryComision(entry, fr);
-      const etq = (ce && ce._virtual) ? 'a distancia / sin horario' : (sinComision ? 'sin franja' : 'a distancia');
+      const etq = esAnual(item) ? 'anual · cualquier horario' : (sinComision ? 'sin franja' : 'a distancia');
       return `<div class="plan-chip${cls}" draggable="true" data-codigo="${item.codigo}" data-from="${idx}" title="${escAttr(item.materia)}${motivos.length ? ' — ' + motivos.join(', ') : ''}">
         <span class="plan-chip__name">${escAttr(item.materia)}</span>
         <span class="plan-chip__hor">${etq}</span>
@@ -1526,7 +1544,6 @@ function renderPlanificador() {
         <div class="plan-sem__head">
           <span class="plan-sem__n">Cuatrimestre ${idx + 1}${actual ? ' · en curso' : (idx === proxIdx ? ' · próximo' : '')} <span class="plan-sem__cuatri">${tipo}</span></span>
           <div class="plan-sem__actions">
-            <button class="btn btn--ghost btn--sm" data-opt="${idx}">Optimizar</button>
             <button class="icon-btn" data-delcuatri="${idx}" title="Eliminar cuatrimestre">✕</button>
           </div>
         </div>
@@ -1577,7 +1594,6 @@ function renderPlanificador() {
 function bindPlanEvents() {
   const out = document.getElementById('plan-output');
 
-  out.querySelectorAll('[data-opt]').forEach(b => b.addEventListener('click', () => optimizarCuatri(+b.dataset.opt)));
   out.querySelectorAll('[data-delcuatri]').forEach(b => b.addEventListener('click', () => planRemoveCuatri(+b.dataset.delcuatri)));
   out.querySelectorAll('.gchip__del, .plan-chip__del').forEach(b => b.addEventListener('click', e => {
     e.stopPropagation();

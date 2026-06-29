@@ -483,7 +483,9 @@
         "condicion": "No aprobada",
         "nota": 0,
         "anio": 5,
-        "cuatri": "1°C"
+        "cuatri": "1°C",
+        "anual": true,
+        "cualquierHorario": true
     },
     {
         "codigo": 911,
