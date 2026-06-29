@@ -1141,14 +1141,22 @@ function initGrafo() {
 function planMateriaHecha(item) { return item.estado === 'aprobada' || item.estado === 'pendiente de final'; }
 
 const DIA_CORTO = { LU: 'Lun', MA: 'Mar', MI: 'Mié', JU: 'Jue', VI: 'Vie', SA: 'Sáb' };
+const GRID_DIAS = [['LU', 'Lun'], ['MA', 'Mar'], ['MI', 'Mié'], ['JU', 'Jue'], ['VI', 'Vie'], ['SA', 'Sáb']];
+const GRID_TURNOS = [['manana', 'Mañana'], ['tarde', 'Tarde'], ['noche', 'Noche']];
+
+// Una entrada de un cuatri es { c: codigo, k: índice de comisión elegida (o null = auto) }
+function planNormEntry(e) { return (typeof e === 'object' && e) ? { c: +e.c, k: (e.k == null ? null : +e.k) } : { c: +e, k: null }; }
 
 function ensurePlanner() {
   if (!plannerState) plannerState = {};
   if (!Array.isArray(plannerState.cuatris)) plannerState.cuatris = [];
+  plannerState.cuatris = plannerState.cuatris.map(arr => (arr || []).map(planNormEntry));
   if (!Array.isArray(plannerState.franjas)) plannerState.franjas = ['manana', 'tarde', 'noche'];
   if (!plannerState.perSem) plannerState.perSem = 6;
   if (!plannerState.startCuatri) plannerState.startCuatri = '1°C';
 }
+// Índice de una comisión dentro de la oferta de la materia
+function comIndex(cod, com) { const arr = oferta[String(cod)] || []; const i = arr.indexOf(com); return i >= 0 ? i : null; }
 function savePlanner() { ensurePlanner(); saveData('planner', plannerState); }
 function franjasSet() { ensurePlanner(); return new Set(plannerState.franjas); }
 
@@ -1207,8 +1215,30 @@ function planCuatriTipo(idx) {
 // Materias "ya hechas" antes del cuatri idx = aprobadas/pend.final reales + todas las de cuatris anteriores
 function planDoneHasta(idx) {
   const done = new Set(planData.filter(planMateriaHecha).map(i => i.codigo));
-  for (let k = 0; k < idx; k++) (plannerState.cuatris[k] || []).forEach(c => done.add(+c));
+  for (let k = 0; k < idx; k++) (plannerState.cuatris[k] || []).forEach(e => done.add(+e.c));
   return done;
+}
+// Comisión elegida de una entrada: la manual (k) si es válida, si no la primera válida (auto)
+function entryComision(entry, fr) {
+  const coms = comisionesValidas(entry.c, fr);
+  if (!coms.length) return null;
+  if (entry.k != null) {
+    const all = oferta[String(entry.c)] || [];
+    const chosen = all[entry.k];
+    if (chosen && coms.includes(chosen)) return chosen;
+  }
+  return coms[0];
+}
+// Comisión de una materia que cae en una celda (día + turno) concreta
+function comisionParaCelda(cod, dia, turno, fr) {
+  const coms = comisionesValidas(cod, fr);
+  for (const com of coms) {
+    if (com._virtual) continue;
+    if ((com.horarios || []).some(h => h.dia === dia && franjaDeHorario(h) === turno)) {
+      return { com, idx: comIndex(cod, com) };
+    }
+  }
+  return null;
 }
 function planCplFactory() {
   if (!dependentsOf) buildDependents();
@@ -1231,7 +1261,7 @@ function calcCuatri(idx) {
   const done = planDoneHasta(idx);
   const tipo = planCuatriTipo(idx);
   const enOtros = new Set();
-  plannerState.cuatris.forEach((arr, k) => { if (k !== idx) (arr || []).forEach(c => enOtros.add(+c)); });
+  plannerState.cuatris.forEach((arr, k) => { if (k !== idx) (arr || []).forEach(e => enOtros.add(+e.c)); });
   const cand = planData.filter(it =>
     !planMateriaHecha(it) && !done.has(it.codigo) && !enOtros.has(it.codigo) &&
     (it.cuatri === tipo || it.cuatri === 'Transversal') &&
@@ -1245,7 +1275,10 @@ function calcCuatri(idx) {
     if (eleg.length >= plannerState.perSem) break;
     if (asignarComisiones([...eleg, it.codigo], fr)) eleg.push(it.codigo);
   }
-  return eleg;
+  // Guardar la comisión elegida (índice) para reflejarla en la grilla
+  const asign = asignarComisiones(eleg, fr) || [];
+  const comPorCod = {}; asign.forEach(a => comPorCod[a.cod] = comIndex(a.cod, a.com));
+  return eleg.map(c => ({ c, k: comPorCod[c] != null ? comPorCod[c] : null }));
 }
 
 function optimizarCuatri(idx) {
@@ -1258,21 +1291,21 @@ function optimizarCuatri(idx) {
 function optimizarTodo() {
   ensurePlanner();
   if (!dependentsOf) buildDependents();
-  const cursando = planData.filter(i => i.estado === 'cursando').map(i => i.codigo);
-  plannerState.cuatris = cursando.length ? [cursando.slice()] : [];
+  const cursando = planData.filter(i => i.estado === 'cursando').map(i => ({ c: i.codigo, k: null }));
+  plannerState.cuatris = cursando.length ? [cursando] : [];
+  const colocSet = () => { const s = new Set(); plannerState.cuatris.forEach(a => a.forEach(e => s.add(+e.c))); return s; };
   let guard = 0, vacios = 0;
   while (guard++ < 60) {
     const idx = plannerState.cuatris.length;
     const eleg = calcCuatri(idx);
     if (eleg.length) { plannerState.cuatris.push(eleg); vacios = 0; }
     else {
-      const coloc = new Set(); plannerState.cuatris.forEach(a => a.forEach(c => coloc.add(+c)));
-      const pend = planData.filter(i => !planMateriaHecha(i) && !coloc.has(i.codigo));
-      if (!pend.length) break;
+      const coloc = colocSet();
+      if (!planData.filter(i => !planMateriaHecha(i) && !coloc.has(i.codigo)).length) break;
       plannerState.cuatris.push([]); vacios++;
       if (vacios >= 2) { plannerState.cuatris.pop(); plannerState.cuatris.pop(); break; }
     }
-    const coloc = new Set(); plannerState.cuatris.forEach(a => a.forEach(c => coloc.add(+c)));
+    const coloc = colocSet();
     if (!planData.filter(i => !planMateriaHecha(i) && !coloc.has(i.codigo)).length) break;
   }
   while (plannerState.cuatris.length && !plannerState.cuatris[plannerState.cuatris.length - 1].length) plannerState.cuatris.pop();
@@ -1280,45 +1313,57 @@ function optimizarTodo() {
   renderPlanificador();
 }
 
-function planAddMateria(idx, cod) {
+function cuatriHas(idx, cod) { return (plannerState.cuatris[idx] || []).some(e => +e.c === +cod); }
+
+function planAddMateria(idx, cod, k = null) {
   ensurePlanner();
   if (!Array.isArray(plannerState.cuatris[idx])) plannerState.cuatris[idx] = [];
-  if (!plannerState.cuatris[idx].includes(cod)) plannerState.cuatris[idx].push(cod);
+  if (!cuatriHas(idx, cod)) plannerState.cuatris[idx].push({ c: +cod, k });
+  else if (k != null) plannerState.cuatris[idx].find(e => +e.c === +cod).k = k;
   savePlanner(); renderPlanificador();
 }
 function planRemoveMateria(idx, cod) {
   ensurePlanner();
-  plannerState.cuatris[idx] = (plannerState.cuatris[idx] || []).filter(c => +c !== +cod);
+  plannerState.cuatris[idx] = (plannerState.cuatris[idx] || []).filter(e => +e.c !== +cod);
   savePlanner(); renderPlanificador();
 }
 function planAddCuatri() { ensurePlanner(); plannerState.cuatris.push([]); savePlanner(); renderPlanificador(); }
 function planRemoveCuatri(idx) { ensurePlanner(); plannerState.cuatris.splice(idx, 1); savePlanner(); renderPlanificador(); }
 
-// Mueve una materia entre cuatris / paleta. from y to: índice numérico o 'palette'
-function planMoveMateria(from, cod, to) {
+// Mueve una materia entre cuatris / paleta. from y to: índice numérico o 'palette'. k = comisión elegida
+function planMoveMateria(from, cod, to, k = null) {
   ensurePlanner();
   cod = +cod;
   if (from !== 'palette' && from != null) {
-    plannerState.cuatris[from] = (plannerState.cuatris[from] || []).filter(c => +c !== cod);
+    plannerState.cuatris[from] = (plannerState.cuatris[from] || []).filter(e => +e.c !== cod);
   }
   if (to !== 'palette' && to != null) {
     if (!Array.isArray(plannerState.cuatris[to])) plannerState.cuatris[to] = [];
-    if (!plannerState.cuatris[to].includes(cod)) plannerState.cuatris[to].push(cod);
+    if (!cuatriHas(to, cod)) plannerState.cuatris[to].push({ c: cod, k });
+    else if (k != null) plannerState.cuatris[to].find(e => +e.c === cod).k = k;
   }
   savePlanner(); renderPlanificador();
 }
 
-// Pares de materias que NO pueden coexistir (toda combinación de comisiones se solapa)
-function paresEnConflicto(codigos, fr) {
+// Soltar una materia en una celda (día+turno): elige la comisión que cae ahí
+function planPlaceInCell(from, cod, toIdx, dia, turno) {
+  const fr = franjasSet();
+  const match = comisionParaCelda(cod, dia, turno, fr);
+  if (!match) return false;                 // esa materia no tiene comisión en esa celda
+  planMoveMateria(from, cod, toIdx, match.idx);
+  return true;
+}
+
+// Conjunto de materias en conflicto dentro de un cuatri (según comisión elegida)
+function conflictosCuatri(entries, fr) {
+  const chosen = entries.map(e => entryComision(e, fr));
   const set = new Set();
-  for (let i = 0; i < codigos.length; i++) {
-    for (let j = i + 1; j < codigos.length; j++) {
-      const A = comisionesValidas(codigos[i], fr), B = comisionesValidas(codigos[j], fr);
-      if (!A.length || !B.length) continue;
-      if (A.every(a => B.every(b => comisionesSolapan(a, b)))) { set.add(+codigos[i]); set.add(+codigos[j]); }
+  for (let i = 0; i < entries.length; i++) {
+    for (let j = i + 1; j < entries.length; j++) {
+      if (chosen[i] && chosen[j] && comisionesSolapan(chosen[i], chosen[j])) { set.add(+entries[i].c); set.add(+entries[j].c); }
     }
   }
-  return set;
+  return { set, chosen };
 }
 
 let dragData = null;       // { cod, from }
@@ -1361,45 +1406,65 @@ function renderPlanificador() {
   const cursandoSet = new Set(planData.filter(i => i.estado === 'cursando').map(i => i.codigo));
   const proxIdx = cursandoSet.size ? 1 : 0;
 
-  // ── Columna izquierda: cuatrimestres ──
+  // ── Columna izquierda: cuatrimestres como grilla turnos × días ──
   let cols = '';
   if (!plannerState.cuatris.length) {
-    cols = `<div class="plan-empty">Arrastrá materias desde la derecha, tocá <b>+ Cuatrimestre</b> para sumar uno, o <b>Calcular plan óptimo</b> para generarlo automáticamente.</div>`;
+    cols = `<div class="plan-empty">Arrastrá materias desde la derecha a la grilla, tocá <b>+ Cuatrimestre</b> para sumar uno, o <b>Calcular plan óptimo</b> para generarlo automáticamente.</div>`;
   }
-  plannerState.cuatris.forEach((arr, idx) => {
+  plannerState.cuatris.forEach((entries, idx) => {
     const tipo = planCuatriTipo(idx);
     const done = planDoneHasta(idx);
-    const items = (arr || []).map(c => planData.find(i => i.codigo === +c)).filter(Boolean);
-    const codigos = items.map(i => i.codigo);
-    const asign = items.length ? asignarComisiones(codigos, fr) : [];
-    const choque = items.length && !asign;
-    const conflictSet = paresEnConflicto(codigos, fr);
-    const asignMap = {}; if (asign) asign.forEach(a => asignMap[a.cod] = a.com);
-    const actual = idx === 0 && arr.length && arr.every(c => cursandoSet.has(+c));
+    const { set: conflictSet, chosen } = conflictosCuatri(entries, fr);
+    const actual = idx === 0 && entries.length && entries.every(e => cursandoSet.has(+e.c));
 
-    const chips = items.map(it => {
-      const corrOk = (correlativas[it.codigo] || []).every(p => done.has(p));
-      const ofreceTipo = it.cuatri === tipo || it.cuatri === 'Transversal';
-      const sinComision = comisionesValidas(it.codigo, fr).length === 0;
-      const conflicto = conflictSet.has(it.codigo) || sinComision;
+    // Ubicar cada materia en celdas (día|turno) según su comisión elegida
+    const cellMap = {}; const sinHorario = [];
+    entries.forEach((entry, i) => {
+      const item = planData.find(m => m.codigo === +entry.c); if (!item) return;
+      const com = chosen[i];
+      const horas = (com && !com._virtual) ? (com.horarios || []).filter(h => h.inicio) : [];
+      if (!horas.length) { sinHorario.push({ entry, item }); return; }
+      horas.forEach(h => { const key = h.dia + '|' + franjaDeHorario(h); (cellMap[key] = cellMap[key] || []).push({ item, h }); });
+    });
+
+    const cuerpo = GRID_TURNOS.map(([t, tl]) => {
+      const celdas = GRID_DIAS.map(([d]) => {
+        const here = cellMap[d + '|' + t] || [];
+        const chips = here.map(({ item, h }) => {
+          const conf = conflictSet.has(+item.codigo);
+          return `<div class="gchip${conf ? ' gchip--conflict' : ''}" draggable="true" data-codigo="${item.codigo}" data-from="${idx}" title="${escAttr(item.materia)}">
+            <span class="gchip__name">${escAttr(item.materia)}</span>
+            <span class="gchip__time">${String(h.inicio).slice(0, 5)}–${String(h.fin).slice(0, 5)}</span>
+            <button class="gchip__del" data-del="${idx}|${item.codigo}" title="Quitar">✕</button>
+          </div>`;
+        }).join('');
+        return `<td class="gcell" data-cell="${idx}|${d}|${t}">${chips}</td>`;
+      }).join('');
+      return `<tr><th class="grow">${tl}</th>${celdas}</tr>`;
+    }).join('');
+
+    const stripChips = sinHorario.map(({ entry, item }) => {
+      const sinComision = comisionesValidas(item.codigo, fr).length === 0;
+      const corrOk = (correlativas[item.codigo] || []).every(p => done.has(p));
+      const ofreceTipo = item.cuatri === tipo || item.cuatri === 'Transversal';
       const motivos = [];
-      if (conflictSet.has(it.codigo)) motivos.push('choca de día/horario con otra');
       if (sinComision) motivos.push('sin comisión en esas franjas');
       if (!corrOk) motivos.push('correlativas pendientes');
       if (!ofreceTipo) motivos.push('no se ofrece en ' + tipo);
-      const cls = conflicto ? ' plan-chip--conflict' : (!corrOk || !ofreceTipo ? ' plan-chip--warn' : '');
-      const hor = asignMap[it.codigo] ? fmtComision(asignMap[it.codigo]) : '';
-      return `<div class="plan-chip${cls}" draggable="true" data-codigo="${it.codigo}" data-from="${idx}" title="${escAttr(it.materia)}${motivos.length ? ' — ' + motivos.join(', ') : ''}">
-        <span class="plan-chip__name">${escAttr(it.materia)}</span>
-        ${hor ? `<span class="plan-chip__hor">${hor}</span>` : ''}
-        <button class="plan-chip__del" data-del="${idx}|${it.codigo}" title="Quitar">✕</button>
+      const cls = sinComision ? ' plan-chip--conflict' : (motivos.length ? ' plan-chip--warn' : '');
+      const ce = entryComision(entry, fr);
+      const etq = (ce && ce._virtual) ? 'a distancia / sin horario' : (sinComision ? 'sin franja' : 'a distancia');
+      return `<div class="plan-chip${cls}" draggable="true" data-codigo="${item.codigo}" data-from="${idx}" title="${escAttr(item.materia)}${motivos.length ? ' — ' + motivos.join(', ') : ''}">
+        <span class="plan-chip__name">${escAttr(item.materia)}</span>
+        <span class="plan-chip__hor">${etq}</span>
+        <button class="plan-chip__del" data-del="${idx}|${item.codigo}" title="Quitar">✕</button>
       </div>`;
     }).join('');
 
     let cls = '';
     if (actual) cls = ' plan-sem--actual';
     else if (idx === proxIdx) cls = ' plan-sem--next';
-    if (choque) cls += ' plan-sem--choque';
+    if (conflictSet.size) cls += ' plan-sem--choque';
 
     cols += `
       <div class="plan-sem${cls}" data-drop="${idx}">
@@ -1410,8 +1475,14 @@ function renderPlanificador() {
             <button class="icon-btn" data-delcuatri="${idx}" title="Eliminar cuatrimestre">✕</button>
           </div>
         </div>
-        ${choque ? `<div class="plan-choque">⚠️ Choque de horarios o materias sin comisión en las franjas elegidas.</div>` : ''}
-        <div class="plan-sem__list" data-drop="${idx}">${chips || '<span class="plan-drop-hint">Soltá materias acá</span>'}</div>
+        ${conflictSet.size ? `<div class="plan-choque">⚠️ Hay materias que se superponen en día/horario (en rojo).</div>` : ''}
+        <div class="grid-wrap">
+          <table class="cuatri-grid">
+            <thead><tr><th></th>${GRID_DIAS.map(([, l]) => `<th>${l}</th>`).join('')}</tr></thead>
+            <tbody>${cuerpo}</tbody>
+          </table>
+        </div>
+        ${sinHorario.length ? `<div class="plan-sinhorario" data-drop="${idx}"><span class="plan-sinhorario__lbl">Sin horario fijo:</span>${stripChips}</div>` : ''}
       </div>`;
   });
 
@@ -1447,16 +1518,15 @@ function bindPlanEvents() {
 
   out.querySelectorAll('[data-opt]').forEach(b => b.addEventListener('click', () => optimizarCuatri(+b.dataset.opt)));
   out.querySelectorAll('[data-delcuatri]').forEach(b => b.addEventListener('click', () => planRemoveCuatri(+b.dataset.delcuatri)));
-  out.querySelectorAll('.plan-chip__del').forEach(b => b.addEventListener('click', e => {
+  out.querySelectorAll('.gchip__del, .plan-chip__del').forEach(b => b.addEventListener('click', e => {
     e.stopPropagation();
     const [idx, cod] = b.dataset.del.split('|');
     planRemoveMateria(+idx, +cod);
   }));
-  out.querySelectorAll('.plan-chip').forEach(el => el.addEventListener('click', e => {
-    if (e.target.closest('.plan-chip__del')) return;
+  out.querySelectorAll('.gchip, .plan-chip, .pal-materia').forEach(el => el.addEventListener('click', e => {
+    if (e.target.closest('.gchip__del, .plan-chip__del')) return;
     openModal(parseInt(el.dataset.codigo, 10));
   }));
-  out.querySelectorAll('.pal-materia').forEach(el => el.addEventListener('click', () => openModal(parseInt(el.dataset.codigo, 10))));
 
   // Drag & drop
   out.querySelectorAll('[draggable="true"]').forEach(el => {
@@ -1470,16 +1540,32 @@ function bindPlanEvents() {
     el.addEventListener('dragend', () => { el.classList.remove('dragging'); dragData = null; });
   });
 
+  // Celdas de la grilla: ubican la materia en ese día+turno (eligen comisión)
+  out.querySelectorAll('.gcell').forEach(cell => {
+    cell.addEventListener('dragover', e => { e.preventDefault(); cell.classList.add('drag-over'); });
+    cell.addEventListener('dragleave', () => cell.classList.remove('drag-over'));
+    cell.addEventListener('drop', e => {
+      e.preventDefault(); e.stopPropagation(); cell.classList.remove('drag-over');
+      if (!dragData) return;
+      const [idx, dia, turno] = cell.dataset.cell.split('|');
+      const ok = planPlaceInCell(dragData.from, dragData.cod, +idx, dia, turno);
+      if (!ok) { cell.classList.add('cell-reject'); setTimeout(() => cell.classList.remove('cell-reject'), 350); }
+      dragData = null;
+    });
+  });
+
+  // Zonas genéricas (paleta, "sin horario") con asignación automática / quitar
   out.querySelectorAll('[data-drop]').forEach(zone => {
     zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
     zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
     zone.addEventListener('drop', e => {
-      e.preventDefault();
+      e.preventDefault(); e.stopPropagation();
       zone.classList.remove('drag-over');
       if (!dragData) return;
       const dest = zone.dataset.drop === 'palette' ? 'palette' : +zone.dataset.drop;
-      if (dragData.from === dest) return;
+      if (dragData.from === dest && dest === 'palette') return;
       planMoveMateria(dragData.from, dragData.cod, dest);
+      dragData = null;
     });
   });
 

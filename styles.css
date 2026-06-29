@@ -799,6 +799,43 @@ button { font-family: inherit; cursor: pointer; }
 .plan-chip { cursor: grab; }
 .plan-chip:active { cursor: grabbing; }
 
+/* Grilla turnos × días dentro del cuatrimestre */
+.grid-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; padding: 10px; }
+.cuatri-grid { width: 100%; border-collapse: separate; border-spacing: 4px; min-width: 560px; }
+.cuatri-grid thead th {
+  font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
+  color: var(--muted); padding: 4px 2px; text-align: center;
+}
+.cuatri-grid .grow {
+  font-size: .66rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
+  color: var(--muted); text-align: right; padding-right: 8px; white-space: nowrap; width: 56px;
+}
+.gcell {
+  background: var(--card-soft); border: 1px solid var(--line); border-radius: 9px;
+  vertical-align: top; padding: 4px; min-width: 84px; height: 52px;
+  transition: background .15s var(--ease), outline .12s var(--ease);
+}
+.gcell.drag-over { outline: 2px dashed var(--accent); outline-offset: -3px; background: var(--accent-soft); }
+.gcell.cell-reject { outline: 2px solid #ef4444; outline-offset: -3px; }
+
+.gchip {
+  display: flex; flex-direction: column; gap: 1px; position: relative;
+  padding: 5px 18px 5px 8px; margin-bottom: 4px; border-radius: 8px;
+  background: var(--accent-soft); border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+  cursor: grab; transition: transform .15s var(--ease-out);
+}
+.gchip:last-child { margin-bottom: 0; }
+.gchip:hover { transform: translateY(-1px); }
+.gchip:active { cursor: grabbing; }
+.gchip__name { font-size: .72rem; font-weight: 600; line-height: 1.15; }
+.gchip__time { font-size: .62rem; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.gchip__del { position: absolute; top: 2px; right: 2px; border: 0; background: transparent; color: var(--muted); font-size: .62rem; width: 15px; height: 15px; border-radius: 4px; line-height: 1; }
+.gchip__del:hover { background: rgba(248,113,113,.18); color: #f87171; }
+.gchip--conflict { background: rgba(239,68,68,.18); border-color: #ef4444; }
+
+.plan-sinhorario { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 0 14px 14px; }
+.plan-sinhorario__lbl { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+
 @media (max-width: 880px) {
   .plan-board { grid-template-columns: 1fr; }
   .plan-palette { position: static; max-height: 320px; order: -1; }
