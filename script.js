@@ -115,7 +115,7 @@ function safeParse(s) { try { return JSON.parse(s); } catch { return null; } }
 /* ════════════════════════════════════════════════════════
    Autenticación
    ════════════════════════════════════════════════════════ */
-let authMode = 'login'; // 'login' | 'register'
+let authMode = 'login'; // 'login' | 'register' | 'recover' | 'reset'
 
 function showLogin() {
   document.getElementById('login-screen').classList.add('visible');
@@ -123,6 +123,12 @@ function showLogin() {
   setAuthError('');
   setAuthMode('login');
   setTimeout(() => document.getElementById('login-email').focus(), 80);
+}
+function showResetPassword() {
+  document.getElementById('login-screen').classList.add('visible');
+  document.getElementById('app').classList.remove('visible');
+  setAuthMode('reset');
+  setTimeout(() => document.getElementById('login-pass').focus(), 80);
 }
 
 function hideLogin() {
@@ -133,10 +139,23 @@ function hideLogin() {
 
 function setAuthMode(mode) {
   authMode = mode;
-  document.getElementById('login-title').textContent  = mode === 'login' ? 'Iniciar sesión' : 'Crear cuenta';
-  document.getElementById('login-submit').textContent = mode === 'login' ? 'Entrar' : 'Registrarse';
-  document.getElementById('switch-text').textContent  = mode === 'login' ? '¿No tenés cuenta?' : '¿Ya tenés cuenta?';
-  document.getElementById('switch-btn').textContent   = mode === 'login' ? 'Registrarse' : 'Iniciar sesión';
+  const cfg = {
+    login:    { title: 'Iniciar sesión',       hint: 'Tus datos se guardan en la nube: accedé desde cualquier dispositivo.', submit: 'Entrar',            email: true,  pass: true,  forgot: true,  switch: true,  switchText: '¿No tenés cuenta?',  switchBtn: 'Registrarse' },
+    register: { title: 'Crear cuenta',          hint: 'Tus datos se guardan en la nube: accedé desde cualquier dispositivo.', submit: 'Registrarse',       email: true,  pass: true,  forgot: false, switch: true,  switchText: '¿Ya tenés cuenta?', switchBtn: 'Iniciar sesión' },
+    recover:  { title: 'Recuperar contraseña',  hint: 'Ingresá tu email y te mandamos un link para restablecerla.',           submit: 'Enviar link',       email: true,  pass: false, forgot: false, switch: true,  switchText: '¿Te acordaste?',    switchBtn: 'Volver a iniciar sesión' },
+    reset:    { title: 'Nueva contraseña',      hint: 'Elegí tu nueva contraseña.',                                          submit: 'Guardar contraseña', email: false, pass: true,  forgot: false, switch: false, switchText: '',                  switchBtn: '' },
+  }[mode] || {};
+  document.getElementById('login-title').textContent  = cfg.title || '';
+  document.querySelector('.login-hint').textContent   = cfg.hint || '';
+  document.getElementById('login-submit').textContent = cfg.submit || 'Entrar';
+  document.getElementById('field-email').style.display = cfg.email ? '' : 'none';
+  document.getElementById('field-pass').style.display  = cfg.pass ? '' : 'none';
+  document.getElementById('forgot-row').style.display  = cfg.forgot ? '' : 'none';
+  document.querySelector('.login-switch').style.display = cfg.switch ? '' : 'none';
+  document.getElementById('switch-text').textContent  = cfg.switchText || '';
+  document.getElementById('switch-btn').textContent   = cfg.switchBtn || '';
+  // el input de contraseña cambia de rol (actual vs nueva)
+  document.getElementById('login-pass').setAttribute('autocomplete', mode === 'reset' ? 'new-password' : 'current-password');
   setAuthError('');
   setAuthInfo('');
 }
@@ -152,7 +171,9 @@ function setAuthInfo(msg) {
 
 function initLoginScreen() {
   document.getElementById('switch-btn').addEventListener('click', () =>
-    setAuthMode(authMode === 'login' ? 'register' : 'login'));
+    setAuthMode((authMode === 'login' || authMode === 'recover') ? (authMode === 'recover' ? 'login' : 'register') : 'login'));
+
+  document.getElementById('forgot-btn').addEventListener('click', () => setAuthMode('recover'));
 
   document.getElementById('login-form').addEventListener('submit', async e => {
     e.preventDefault();
@@ -161,32 +182,50 @@ function initLoginScreen() {
     const btn   = document.getElementById('login-submit');
     setAuthError(''); setAuthInfo('');
 
-    if (!email) { setAuthError('Ingresá tu email.'); return; }
-    if (pass.length < 6) { setAuthError('La contraseña debe tener al menos 6 caracteres.'); return; }
+    // Validaciones según el modo
+    if (authMode !== 'reset' && !email) { setAuthError('Ingresá tu email.'); return; }
+    if ((authMode === 'login' || authMode === 'register' || authMode === 'reset') && pass.length < 6) {
+      setAuthError('La contraseña debe tener al menos 6 caracteres.'); return;
+    }
 
     btn.disabled = true;
     const txtPrev = btn.textContent;
     btn.textContent = '…';
+    const fin = () => { btn.disabled = false; btn.textContent = txtPrev; };
 
     if (authMode === 'login') {
       const { error } = await supabaseClient.auth.signInWithPassword({ email, password: pass });
-      if (error) {
-        setAuthError(traducirError(error.message));
-        btn.disabled = false; btn.textContent = txtPrev;
-      }
+      if (error) { setAuthError(traducirError(error.message)); fin(); }
       // si OK, onAuthStateChange se encarga de entrar
-    } else {
+
+    } else if (authMode === 'register') {
       const { data, error } = await supabaseClient.auth.signUp({ email, password: pass });
-      if (error) {
-        setAuthError(traducirError(error.message));
-        btn.disabled = false; btn.textContent = txtPrev;
-      } else if (!data.session) {
-        // Falta confirmar email (si la confirmación está activada en Supabase)
+      if (error) { setAuthError(traducirError(error.message)); fin(); }
+      else if (!data.session) {
         setAuthInfo('Te enviamos un email para confirmar tu cuenta. Confirmalo y volvé a iniciar sesión.');
-        setAuthMode('login');
-        btn.disabled = false; btn.textContent = 'Entrar';
+        setAuthMode('login'); fin();
       }
-      // si hay session, onAuthStateChange entra directo
+
+    } else if (authMode === 'recover') {
+      const redirectTo = window.location.origin + window.location.pathname;
+      const { error } = await supabaseClient.auth.resetPasswordForEmail(email, { redirectTo });
+      if (error && /rate|seconds|too many/i.test(error.message)) {
+        setAuthError('Esperá unos segundos antes de volver a pedirlo.'); fin();
+      } else {
+        setAuthMode('login');   // no revelamos si el email existe o no
+        setAuthInfo('Si ese email tiene una cuenta, te enviamos un link para restablecer la contraseña. Revisá tu casilla (y el spam).');
+        fin();
+      }
+
+    } else if (authMode === 'reset') {
+      const { error } = await supabaseClient.auth.updateUser({ password: pass });
+      if (error) { setAuthError(traducirError(error.message)); fin(); return; }
+      // Limpiar el hash de recuperación de la URL y entrar
+      try { history.replaceState(null, '', window.location.origin + window.location.pathname); } catch {}
+      setAuthInfo('¡Listo! Tu contraseña se actualizó.');
+      const { data } = await supabaseClient.auth.getUser();
+      if (data?.user) { currentUser = data.user; hideLogin(); await enterApp(); }
+      fin();
     }
   });
 }
@@ -1710,11 +1749,19 @@ window.addEventListener('DOMContentLoaded', async () => {
   initTopbarAutohide();
   initLoginScreen();
 
+  // ¿Venimos del link de recuperación de contraseña?
+  const enRecuperacion = /type=recovery/.test(window.location.hash) || /type=recovery/.test(window.location.search);
+
   // Reaccionar a cambios de sesión (login, logout, refresh de token)
   supabaseClient.auth.onAuthStateChange((event, session) => {
+    if (event === 'PASSWORD_RECOVERY') {          // el usuario clickeó el link del email
+      currentUser = session?.user || null;
+      showResetPassword();
+      return;
+    }
     if (session?.user) {
       currentUser = session.user;
-      if (event === 'SIGNED_IN' || (event === 'INITIAL_SESSION')) enterApp();
+      if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && !enRecuperacion) enterApp();
     } else {
       currentUser = null;
       appInicializada = false;
@@ -1725,7 +1772,10 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   // Estado inicial por si onAuthStateChange no dispara INITIAL_SESSION
   const { data: { session } } = await supabaseClient.auth.getSession();
-  if (session?.user) {
+  if (enRecuperacion) {
+    if (session?.user) currentUser = session.user;
+    showResetPassword();
+  } else if (session?.user) {
     currentUser = session.user;
     if (!appInicializada) enterApp();
   } else {
