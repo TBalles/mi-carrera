@@ -26,11 +26,11 @@
       <h2 id="login-title">Iniciar sesión</h2>
       <p class="login-hint">Tus datos se guardan en la nube: accedé desde cualquier dispositivo.</p>
       <form id="login-form" novalidate autocomplete="on">
-        <div class="login-field">
+        <div class="login-field" id="field-email">
           <label for="login-email">Email</label>
           <input id="login-email" type="email" placeholder="tu@email.com" autocomplete="email" spellcheck="false" />
         </div>
-        <div class="login-field">
+        <div class="login-field" id="field-pass">
           <label for="login-pass">Contraseña</label>
           <input id="login-pass" type="password" placeholder="••••••••" autocomplete="current-password" />
         </div>
@@ -38,6 +38,9 @@
         <div id="login-info" class="login-info"></div>
         <button type="submit" class="btn btn--primary login-submit" id="login-submit">Entrar</button>
       </form>
+      <p class="login-forgot" id="forgot-row">
+        <button class="link-btn" id="forgot-btn" type="button">¿Olvidaste tu contraseña?</button>
+      </p>
       <p class="login-switch">
         <span id="switch-text">¿No tenés cuenta?</span>
         <button class="link-btn" id="switch-btn" type="button">Registrarse</button>

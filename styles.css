@@ -163,7 +163,8 @@ button { font-family: inherit; cursor: pointer; }
   display: none;
 }
 .login-submit { width: 100%; padding: 13px; font-size: .95rem; border-radius: 12px; margin-top: 4px; }
-.login-switch { text-align: center; margin-top: 20px; font-size: .88rem; color: var(--ink-soft); }
+.login-forgot { text-align: center; margin-top: 12px; }
+.login-switch { text-align: center; margin-top: 14px; font-size: .88rem; color: var(--ink-soft); }
 .link-btn {
   background: none; border: none; color: var(--accent); font-weight: 600; font-size: .88rem;
   cursor: pointer; padding: 0 2px; text-decoration: underline; text-underline-offset: 2px;
