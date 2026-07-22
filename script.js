@@ -7,6 +7,7 @@ let planData = [];
 let correlativas = {};
 let customEstados = {};
 let customNotas = {};
+let customAplazos = {};          // codigo -> [notas de aplazos] (para promedio con aplazos)
 let historialData = [];
 let statusChart = null;
 let currentUser = null;          // objeto user de Supabase
@@ -48,6 +49,7 @@ function manejarErrorNube(error, contexto) {
 async function loadUserData() {
   customEstados = {};
   customNotas = {};
+  customAplazos = {};
   historialData = null;
   plannerState = null;
   const { data, error } = await supabaseClient
@@ -57,6 +59,7 @@ async function loadUserData() {
   for (const row of data || []) {
     if (row.key === 'estados')   customEstados = row.value || {};
     else if (row.key === 'notas')    customNotas = row.value || {};
+    else if (row.key === 'aplazos')  customAplazos = row.value || {};
     else if (row.key === 'historial') historialData = row.value || [];
     else if (row.key === 'planner')   plannerState = row.value || null;
   }
@@ -420,6 +423,98 @@ function setNota(codigo, nota) {
 }
 
 /* ════════════════════════════════════════════════════════
+   Importar historial del campus (Intraconsulta)
+   ════════════════════════════════════════════════════════ */
+let importResultado = null;
+
+function normCod(s) { const n = parseInt(String(s).trim(), 10); return Number.isNaN(n) ? null : String(n); }
+
+function parseImportCampus(texto, tipo) {
+  const porCod = {}; planData.forEach(i => { porCod[String(i.codigo)] = i; });
+  const lineas = texto.split(/\r?\n/);
+  const aprobadas = [], regularizadas = [], aplazos = [];
+  const vistos = new Set();
+  const reCod = /\b\d{3,4}\b/g;
+  const reNota = /(?<![\d/])(10|[1-9])(?![\d/])/g;   // 1-10 que no sea parte de una fecha
+  for (const linea of lineas) {
+    // primer número de 3-4 dígitos que sea un código del plan
+    let cod = null, codPos = -1, m;
+    reCod.lastIndex = 0;
+    while ((m = reCod.exec(linea))) { const n = normCod(m[0]); if (n && porCod[n]) { cod = n; codPos = m.index; break; } }
+    if (!cod || vistos.has(cod)) continue;
+
+    const low = linea.toLowerCase();
+    // nota (después del código)
+    let nota = null; reNota.lastIndex = 0;
+    while ((m = reNota.exec(linea))) { if (m.index > codPos) { nota = +m[1]; break; } }
+    const esAplazo = /aplaz|insuf|reprob|ausente|libre|desaprob/.test(low);
+
+    if (tipo === 'regularizadas') {
+      regularizadas.push(cod); vistos.add(cod);
+    } else {
+      if (esAplazo || (nota !== null && nota < 4)) {
+        if (nota !== null) aplazos.push({ cod, nota });   // registrar aplazo, no aprueba
+      } else if (nota !== null && nota >= 4) {
+        aprobadas.push({ cod, nota }); vistos.add(cod);
+      } else if (/aprob|promo/.test(low)) {
+        aprobadas.push({ cod, nota: 0 }); vistos.add(cod);
+      }
+    }
+  }
+  return { aprobadas, regularizadas, aplazos };
+}
+
+function initImportador() {
+  const bd = document.getElementById('import-backdrop');
+  const abrir = () => { bd.classList.add('open'); document.getElementById('import-preview').innerHTML = ''; document.getElementById('import-aplicar').disabled = true; importResultado = null; };
+  const cerrar = () => bd.classList.remove('open');
+  document.getElementById('import-campus').addEventListener('click', abrir);
+  document.getElementById('import-close').addEventListener('click', cerrar);
+  bd.addEventListener('click', e => { if (e.target === bd) cerrar(); });
+
+  document.getElementById('import-analizar').addEventListener('click', () => {
+    const texto = document.getElementById('import-text').value;
+    const tipo = document.querySelector('input[name="import-tipo"]:checked').value;
+    const r = parseImportCampus(texto, tipo);
+    importResultado = r;
+    const nombre = c => (planData.find(i => String(i.codigo) === c) || {}).materia || c;
+    let html = '';
+    if (tipo === 'regularizadas') {
+      html = `<b>${r.regularizadas.length}</b> materia(s) regularizada(s) detectada(s).`;
+      if (r.regularizadas.length) html += `<div class="import-list">${r.regularizadas.map(c => escAttr(nombre(c))).join(' · ')}</div>`;
+    } else {
+      html = `<b>${r.aprobadas.length}</b> aprobada(s)` + (r.aplazos.length ? ` · <b>${r.aplazos.length}</b> aplazo(s)` : '') + `.`;
+      if (r.aprobadas.length) html += `<div class="import-list">${r.aprobadas.map(a => escAttr(nombre(a.cod)) + (a.nota ? ` (${a.nota})` : '')).join(' · ')}</div>`;
+    }
+    const total = r.aprobadas.length + r.regularizadas.length + r.aplazos.length;
+    if (!total) html = 'No se reconoció ninguna materia del plan. Revisá que hayas pegado la tabla con los códigos.';
+    document.getElementById('import-preview').innerHTML = html;
+    document.getElementById('import-aplicar').disabled = total === 0;
+  });
+
+  document.getElementById('import-aplicar').addEventListener('click', () => {
+    if (!importResultado) return;
+    const r = importResultado;
+    r.aprobadas.forEach(a => {
+      customEstados[a.cod] = 'aprobada';
+      if (a.nota) customNotas[a.cod] = a.nota;
+    });
+    r.regularizadas.forEach(c => { customEstados[c] = 'pendiente de final'; });
+    r.aplazos.forEach(a => { (customAplazos[a.cod] = customAplazos[a.cod] || []).push(a.nota); });
+    // aplicar a planData en memoria
+    planData.forEach(i => { i.estado = baseEstado(i); i.nota = baseNota(i); });
+    saveData('estados', customEstados);
+    saveData('notas', customNotas);
+    saveData('aplazos', customAplazos);
+    recalcular();
+    renderAll();
+    cerrar();
+    mostrarBanner(`Importado: ${r.aprobadas.length} aprobadas, ${r.regularizadas.length} regularizadas${r.aplazos.length ? ', ' + r.aplazos.length + ' aplazos' : ''}.`, 'ok');
+    setTimeout(ocultarBanner, 4000);
+  });
+}
+
+/* ════════════════════════════════════════════════════════
    Render
    ════════════════════════════════════════════════════════ */
 function renderAll() {
@@ -444,8 +539,12 @@ function getStats() {
   const restantes   = Math.max(0, total - aprobadas);
   const porcentaje  = total ? (aprobadas / total * 100) : 0;
   const notas       = planData.filter(i => i.estado === 'aprobada' && i.nota > 0).map(i => i.nota);
-  const promedio    = notas.length ? notas.reduce((a, b) => a + b, 0) / notas.length : null;
-  return { total, aprobadas: aprobadasReal, aprobadasReq: aprobadas, cursando, pendientes, disponibles, bloqueadas, restantes, porcentaje, promedio };
+  const promedio    = notas.length ? notas.reduce((a, b) => a + b, 0) / notas.length : null;   // sin aplazos
+  // Con aplazos: suma las notas aprobadas + todos los aplazos registrados (import del campus)
+  const aplazos = Object.values(customAplazos || {}).flat().map(Number).filter(n => !isNaN(n));
+  const todas = notas.concat(aplazos);
+  const promedioConAplazos = todas.length ? todas.reduce((a, b) => a + b, 0) / todas.length : null;
+  return { total, aprobadas: aprobadasReal, aprobadasReq: aprobadas, cursando, pendientes, disponibles, bloqueadas, restantes, porcentaje, promedio, promedioConAplazos, nAplazos: aplazos.length };
 }
 
 function renderStats() {
@@ -455,6 +554,8 @@ function renderStats() {
   document.getElementById('st-aprobadas').textContent   = s.aprobadasReq;
   document.getElementById('st-total').textContent       = s.total;
   document.getElementById('st-promedio').textContent    = s.promedio !== null ? s.promedio.toFixed(2) : '—';
+  const apEl = document.getElementById('st-promedio-aplazos');
+  if (apEl) apEl.textContent = (s.nAplazos && s.promedioConAplazos !== null) ? `con aplazos: ${s.promedioConAplazos.toFixed(2)}` : '';
   document.getElementById('st-disponibles').textContent = s.disponibles;
   document.getElementById('st-cursando').textContent    = s.cursando;
   document.getElementById('st-restantes').textContent   = s.restantes;
@@ -1479,6 +1580,18 @@ let palFilter = '';        // texto del buscador de la paleta
 
 function fmtAnios(n) { const a = n / 2; return a % 1 ? a.toFixed(1) : String(a); }
 
+// Estima en qué cuatrimestre/año te recibís según la cantidad de cuatrimestres del plan
+function fechaRecibida(nCuatri, startCuatri) {
+  if (!nCuatri) return null;
+  const now = new Date();
+  let y = now.getFullYear();
+  const enSegundoAhora = (now.getMonth() + 1) > 7;   // agosto en adelante
+  if (startCuatri === '1°C' && enSegundoAhora) y++;   // el 1°C de este año ya pasó
+  let c = startCuatri;
+  for (let i = 1; i < nCuatri; i++) { if (c === '1°C') c = '2°C'; else { c = '1°C'; y++; } }
+  return `${c} ${y}`;
+}
+
 function syncPlanControles() {
   ensurePlanner();
   const per = document.getElementById('plan-per-sem');
@@ -1509,10 +1622,12 @@ function renderPlanificador() {
   const sinUbicar = oblPend.filter(i => !coloc.has(i.codigo)).length + Math.max(0, electTotalFaltan - electPuestas);
   const nCuatri = plannerState.cuatris.filter(a => a && a.length).length;
 
+  const recibida = fechaRecibida(nCuatri, plannerState.startCuatri);
   sum.innerHTML = `
     <div class="plan-card-sum">
       <div><span class="plan-big">${porCursar}</span><span class="plan-sub">materias por cursar (incl. ${electTotalFaltan} electiva${electTotalFaltan !== 1 ? 's' : ''})</span></div>
       <div><span class="plan-big">${nCuatri}</span><span class="plan-sub">cuatrimestres (~${fmtAnios(nCuatri)} años)</span></div>
+      <div><span class="plan-big">${recibida || '—'}</span><span class="plan-sub">te recibís (aprox.)</span></div>
       <div><span class="plan-big">${sinUbicar}</span><span class="plan-sub">sin ubicar</span></div>
     </div>`;
 
@@ -1742,6 +1857,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   initTheme();
   initTabs();
   initModal();
+  initImportador();
   initPlanControls();
   initHistorialControls();
   initGrafo();

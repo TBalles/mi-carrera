@@ -409,6 +409,22 @@ button { font-family: inherit; cursor: pointer; }
 .modal__nota-row.is-hidden { display: none; }
 .modal__actions { display: flex; gap: 10px; justify-content: flex-end; }
 
+/* ── Modal importar del campus ──────────────────── */
+.modal--wide { max-width: 560px; }
+.import-tipo { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+.import-tipo label { display: flex; align-items: center; gap: 8px; font-size: .88rem; cursor: pointer; }
+.import-tipo input { accent-color: var(--accent); }
+.import-text {
+  width: 100%; border-radius: 12px; border: 1.5px solid var(--line);
+  background: var(--card-soft); color: var(--ink); font-family: 'Inter', system-ui, sans-serif;
+  font-size: .85rem; padding: 12px; resize: vertical; outline: none; margin-bottom: 12px;
+}
+.import-text:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.import-preview { font-size: .88rem; color: var(--ink-soft); margin-bottom: 16px; min-height: 8px; }
+.import-preview b { color: var(--accent); }
+.import-list { margin-top: 8px; font-size: .78rem; color: var(--muted); max-height: 140px; overflow-y: auto; line-height: 1.6; }
+.cloud-banner:not(.cloud-banner--error) { background: var(--accent-strong); }
+
 /* ── Botones ────────────────────────────────────── */
 .btn {
   padding: 10px 16px; border-radius: 12px; font-weight: 600; font-size: .88rem;
