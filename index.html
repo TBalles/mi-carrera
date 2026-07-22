@@ -91,6 +91,7 @@
           <div class="stat">
             <span class="stat__num" id="st-promedio">—</span>
             <span class="stat__label">Promedio general</span>
+            <span class="stat__hint" id="st-promedio-aplazos"></span>
           </div>
           <div class="stat">
             <span class="stat__num stat__num--cyan" id="st-disponibles">0</span>
@@ -133,6 +134,7 @@
                 <option value="disponible">Disponibles</option>
                 <option value="bloqueada">No disponibles</option>
               </select>
+              <button id="import-campus" class="btn btn--primary">Importar del campus</button>
               <button id="export-plan" class="btn btn--ghost">Exportar</button>
               <button id="reset-plan" class="btn btn--danger">Reiniciar a 0%</button>
             </div>
@@ -243,6 +245,26 @@
         </div>
         <div class="modal__actions">
           <button class="btn btn--ghost" id="modal-close">Cerrar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ MODAL IMPORTAR DEL CAMPUS ============ -->
+    <div class="modal-backdrop" id="import-backdrop">
+      <div class="modal modal--wide" role="dialog" aria-modal="true">
+        <div class="modal__title">Importar del campus</div>
+        <p class="modal__meta">Copiá y pegá la tabla de la Intraconsulta (Historia Académica o Materias Regularizadas). Detectamos código, nota y estado automáticamente.</p>
+        <div class="modal__field-label">¿Qué estás pegando?</div>
+        <div class="import-tipo">
+          <label><input type="radio" name="import-tipo" value="aprobadas" checked> Aprobadas / Historia Académica</label>
+          <label><input type="radio" name="import-tipo" value="regularizadas"> Materias Regularizadas</label>
+        </div>
+        <textarea id="import-text" class="import-text" rows="8" placeholder="Pegá acá el texto del campus…"></textarea>
+        <div id="import-preview" class="import-preview"></div>
+        <div class="modal__actions">
+          <button class="btn btn--ghost" id="import-close">Cancelar</button>
+          <button class="btn btn--ghost" id="import-analizar">Analizar</button>
+          <button class="btn btn--primary" id="import-aplicar" disabled>Aplicar</button>
         </div>
       </div>
     </div>
