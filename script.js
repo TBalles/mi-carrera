@@ -251,19 +251,25 @@ async function logout() {
 function applyTheme(theme) {
   if (theme === 'light') document.documentElement.setAttribute('data-theme', 'light');
   else document.documentElement.removeAttribute('data-theme');
-  const btn = document.getElementById('theme-toggle');
-  if (btn) btn.textContent = theme === 'light' ? '☀' : '☾';
+  // hay un toggle en la sidebar y otro en la topbar mobile
+  document.querySelectorAll('#theme-toggle, #theme-toggle-m').forEach(btn => {
+    btn.textContent = theme === 'light' ? '☀' : '☾';
+    btn.setAttribute('aria-label', theme === 'light' ? 'Cambiar a tema oscuro' : 'Cambiar a tema claro');
+  });
+  // que la barra del navegador acompañe al tema
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute('content', theme === 'light' ? '#f6f7f9' : '#0b0c0e');
 }
 function initTheme() {
   applyTheme(localStorage.getItem(STORE_THEME) || 'dark');
-  document.getElementById('theme-toggle').addEventListener('click', () => {
-    const now = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
-    localStorage.setItem(STORE_THEME, now);
-    applyTheme(now);
-  });
-  document.getElementById('logout-btn').addEventListener('click', () => {
-    if (confirm('¿Cerrar sesión?')) logout();
-  });
+  document.querySelectorAll('#theme-toggle, #theme-toggle-m').forEach(btn =>
+    btn.addEventListener('click', () => {
+      const now = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+      localStorage.setItem(STORE_THEME, now);
+      applyTheme(now);
+    }));
+  document.querySelectorAll('#logout-btn, #logout-btn-m').forEach(btn =>
+    btn.addEventListener('click', () => { if (confirm('¿Cerrar sesión?')) logout(); }));
 }
 
 /* ════════════════════════════════════════════════════════
@@ -272,10 +278,19 @@ function initTheme() {
 function initTabs() {
   const tabs   = document.querySelectorAll('.tab');
   const panels = document.querySelectorAll('.tabpanel');
-  tabs.forEach(t => t.addEventListener('click', () => {
-    const target = t.dataset.tab;
-    tabs.forEach(x => x.classList.toggle('tab--active', x === t));
+  // La navegación está duplicada (sidebar + barra inferior mobile), así que
+  // el estado activo se compara por data-tab y no por identidad del nodo.
+  const activar = target => {
+    tabs.forEach(x => {
+      const on = x.dataset.tab === target;
+      x.classList.toggle('tab--active', on);
+      if (on) x.setAttribute('aria-current', 'page'); else x.removeAttribute('aria-current');
+    });
     panels.forEach(p => p.classList.toggle('tabpanel--active', p.dataset.panel === target));
+  };
+  tabs.forEach(t => t.addEventListener('click', () => {
+    activar(t.dataset.tab);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }));
 }
 
@@ -685,7 +700,7 @@ function renderTable() {
     const anioLabel = item.cuatri === 'Transversal' ? 'Trans.' : `${item.anio}º ${item.cuatri}`;
     const notaVal   = item.nota > 0 ? item.nota : '';
     const disNota   = item.estado === 'aprobada' ? '' : 'disabled';
-    const sel       = `<select class="state-select" data-codigo="${item.codigo}">
+    const sel       = `<select class="state-select" data-codigo="${item.codigo}" aria-label="Estado de ${escAttr(item.materia)}">
       ${CICLO.map(e => `<option value="${e}" ${item.estado === e ? 'selected' : ''}>${ESTADO_LABEL[e]}</option>`).join('')}
     </select>`;
     return `<tr>
@@ -695,7 +710,7 @@ function renderTable() {
       <td>${item.trayecto || '—'}</td>
       <td>${sel}</td>
       <td class="corr-list">${corrHtml}</td>
-      <td><input class="nota-input" type="number" min="1" max="10" data-codigo="${item.codigo}" value="${notaVal}" placeholder="—" ${disNota}></td>
+      <td><input class="nota-input" type="number" inputmode="numeric" min="1" max="10" data-codigo="${item.codigo}" value="${notaVal}" placeholder="—" autocomplete="off" aria-label="Nota de ${escAttr(item.materia)}" ${disNota}></td>
     </tr>`;
   }).join('');
 
@@ -882,18 +897,18 @@ function renderHistorial() {
     const headCols = COLS.map(c => `<th>${c.label}</th>`).join('');
     const rows     = sem.materias.map((m, mi) => {
       const notas = COLS.map(c =>
-        `<td><input class="hist-input hist-input--nota ${notaClase(m[c.key])}" data-s="${si}" data-m="${mi}" data-k="${c.key}" value="${escAttr(m[c.key])}" placeholder="—"></td>`
+        `<td><input class="hist-input hist-input--nota ${notaClase(m[c.key])}" data-s="${si}" data-m="${mi}" data-k="${c.key}" value="${escAttr(m[c.key])}" placeholder="—" autocomplete="off" inputmode="decimal" aria-label="${c.label} de ${escAttr(m.materia) || "la materia"}"></td>`
       ).join('');
       return `<tr>
-        <td><input class="hist-input hist-input--materia" data-s="${si}" data-m="${mi}" data-k="materia" value="${escAttr(m.materia)}" placeholder="Nombre de la materia"></td>
+        <td><input class="hist-input hist-input--materia" data-s="${si}" data-m="${mi}" data-k="materia" value="${escAttr(m.materia)}" placeholder="Nombre de la materia…" autocomplete="off" aria-label="Nombre de la materia, fila ${mi + 1}"></td>
         ${notas}
-        <td class="hist-row-actions"><button class="icon-btn" data-del-row="${si},${mi}" title="Eliminar fila">✕</button></td>
+        <td class="hist-row-actions"><button class="icon-btn" type="button" data-del-row="${si},${mi}" title="Eliminar fila" aria-label="Eliminar la fila de ${escAttr(m.materia) || "esta materia"}">✕</button></td>
       </tr>`;
     }).join('');
     return `
       <div class="semestre">
         <div class="semestre__head">
-          <input class="semestre__title" data-title="${si}" value="${escAttr(sem.semestre)}" placeholder="Ej: 1°C 2026">
+          <input class="semestre__title" data-title="${si}" value="${escAttr(sem.semestre)}" placeholder="Ej: 1°C 2026…" autocomplete="off" aria-label="Nombre del cuatrimestre ${si + 1}">
           <span class="semestre__avg">${avg !== null ? `Promedio: <b>${avg.toFixed(2)}</b>` : ''}</span>
         </div>
         <div class="table-wrap">
@@ -1154,7 +1169,7 @@ function fitGrafo() {
   const s = clampNum(Math.min((cw - pad * 2) / grafoLayout.width, (ch - pad * 2) / grafoLayout.height), 0.18, 1.4);
   grafoView.s = s;
   grafoView.tx = Math.max(pad, (cw - grafoLayout.width * s) / 2);
-  grafoView.ty = pad;
+  grafoView.ty = Math.max(pad, (ch - grafoLayout.height * s) / 2);   // centrado vertical
   grafoFitted = true;
   applyGrafoTransform();
 }
@@ -1229,8 +1244,9 @@ function initGrafo() {
   document.getElementById('grafo-info-edit').addEventListener('click', () => { if (grafoSel != null) openModal(grafoSel); });
 
   // Re-render + encuadre al abrir la pestaña (recién ahí el contenedor tiene tamaño)
-  const grafoTab = document.querySelector('.tab[data-tab="grafo"]');
-  if (grafoTab) grafoTab.addEventListener('click', () => { grafoFitted = false; renderGrafo(); });
+  // la pestaña existe en la sidebar y en la barra inferior mobile
+  document.querySelectorAll('.tab[data-tab="grafo"]').forEach(t =>
+    t.addEventListener('click', () => { grafoFitted = false; renderGrafo(); }));
 
   // Doble clic / doble tap → editar
   host.addEventListener('dblclick', e => {
@@ -1663,7 +1679,7 @@ function renderPlanificador() {
           return `<div class="gchip${conf ? ' gchip--conflict' : ''}" draggable="true" data-codigo="${item.codigo}" data-from="${idx}" title="${escAttr(item.materia)}">
             <span class="gchip__name">${escAttr(item.materia)}</span>
             <span class="gchip__time">${String(h.inicio).slice(0, 5)}–${String(h.fin).slice(0, 5)}</span>
-            <button class="gchip__del" data-del="${idx}|${item.codigo}" title="Quitar">✕</button>
+            <button class="gchip__del" type="button" data-del="${idx}|${item.codigo}" title="Quitar" aria-label="Quitar ${escAttr(item.materia)} del cuatrimestre">✕</button>
           </div>`;
         }).join('');
         return `<td class="gcell" data-cell="${idx}|${d}|${t}">${chips}</td>`;
@@ -1684,7 +1700,7 @@ function renderPlanificador() {
       return `<div class="plan-chip${cls}" draggable="true" data-codigo="${item.codigo}" data-from="${idx}" title="${escAttr(item.materia)}${motivos.length ? ' — ' + motivos.join(', ') : ''}">
         <span class="plan-chip__name">${escAttr(item.materia)}</span>
         <span class="plan-chip__hor">${etq}</span>
-        <button class="plan-chip__del" data-del="${idx}|${item.codigo}" title="Quitar">✕</button>
+        <button class="plan-chip__del" type="button" data-del="${idx}|${item.codigo}" title="Quitar" aria-label="Quitar ${escAttr(item.materia)} del cuatrimestre">✕</button>
       </div>`;
     }).join('');
 
@@ -1698,7 +1714,7 @@ function renderPlanificador() {
         <div class="plan-sem__head">
           <span class="plan-sem__n">Cuatrimestre ${idx + 1}${actual ? ' · en curso' : (idx === proxIdx ? ' · próximo' : '')} <span class="plan-sem__cuatri">${tipo}</span></span>
           <div class="plan-sem__actions">
-            <button class="icon-btn" data-delcuatri="${idx}" title="Eliminar cuatrimestre">✕</button>
+            <button class="icon-btn" type="button" data-delcuatri="${idx}" title="Eliminar cuatrimestre" aria-label="Eliminar el cuatrimestre ${idx + 1}">✕</button>
           </div>
         </div>
         ${conflictSet.size ? `<div class="plan-choque">⚠️ Hay materias que se superponen en día/horario (en rojo).</div>` : ''}

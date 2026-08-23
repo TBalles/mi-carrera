@@ -2,9 +2,14 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0b0c0e">
+  <meta name="description" content="Seguimiento del Plan de Estudios 2023 de Ingeniería en Informática (UNLaM): progreso, correlativas y planificador de cursada.">
   <title>Mi Carrera · Ingeniería en Informática</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
   <link rel="stylesheet" href="styles.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -13,31 +18,42 @@
 </head>
 <body>
 
-  <!-- ============ PANTALLA DE LOGIN ============ -->
+  <a class="skip-link" href="#contenido">Saltar al contenido</a>
+
+  <!-- ════════════ PANTALLA DE LOGIN ════════════ -->
   <div id="login-screen" class="login-screen visible">
     <div class="login-card">
       <div class="login-brand">
-        <span class="brand__logo">◐</span>
-        <div>
-          <strong>Ingeniería en Informática</strong>
-          <span class="brand__sub">Plan de Estudios 2023 · UNLaM</span>
-        </div>
+        <span class="brand__logo" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 4 22 9l-10 5L2 9l10-5Z" fill="currentColor"/><path d="M6 11.5V16c0 1.7 2.7 3 6 3s6-1.3 6-3v-4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </span>
+        <span class="login-brand__text">
+          <strong translate="no">Mi Carrera</strong>
+          <span class="brand__sub">Ingeniería en Informática · UNLaM</span>
+        </span>
       </div>
-      <h2 id="login-title">Iniciar sesión</h2>
+
+      <h1 id="login-title">Iniciar sesión</h1>
       <p class="login-hint">Tus datos se guardan en la nube: accedé desde cualquier dispositivo.</p>
+
       <form id="login-form" novalidate autocomplete="on">
         <div class="login-field" id="field-email">
           <label for="login-email">Email</label>
-          <input id="login-email" type="email" placeholder="tu@email.com" autocomplete="email" spellcheck="false" />
+          <input id="login-email" name="email" type="email" inputmode="email"
+                 placeholder="tu@email.com…" autocomplete="email" spellcheck="false">
         </div>
         <div class="login-field" id="field-pass">
           <label for="login-pass">Contraseña</label>
-          <input id="login-pass" type="password" placeholder="••••••••" autocomplete="current-password" />
+          <input id="login-pass" name="password" type="password"
+                 placeholder="Tu contraseña…" autocomplete="current-password" spellcheck="false">
         </div>
-        <div id="login-error" class="login-error"></div>
-        <div id="login-info" class="login-info"></div>
+
+        <p id="login-error" class="login-error" role="alert" aria-live="assertive"></p>
+        <p id="login-info" class="login-info" role="status" aria-live="polite"></p>
+
         <button type="submit" class="btn btn--primary login-submit" id="login-submit">Entrar</button>
       </form>
+
       <p class="login-forgot" id="forgot-row">
         <button class="link-btn" id="forgot-btn" type="button">¿Olvidaste tu contraseña?</button>
       </p>
@@ -48,230 +64,320 @@
     </div>
   </div>
 
-  <!-- ============ APP ============ -->
+  <!-- ════════════ APP ════════════ -->
   <div id="app">
 
-    <header class="topbar">
-      <div class="topbar__inner">
-        <div class="brand">
-          <span class="brand__logo">◐</span>
-          <div>
-            <strong>Ingeniería en Informática</strong>
-            <span class="brand__sub">Plan de Estudios 2023 · Seguimiento</span>
-          </div>
-        </div>
-        <div class="topbar__right">
-          <nav class="tabs">
-            <button class="tab tab--active" data-tab="plan">Plan de Estudios</button>
-            <button class="tab" data-tab="grafo">Correlativas</button>
-            <button class="tab" data-tab="plan-opt">Planificador</button>
-            <button class="tab" data-tab="historial">Historial de Notas</button>
-          </nav>
-          <span class="user-chip" id="user-chip"></span>
-          <button id="theme-toggle" class="theme-toggle" title="Cambiar tema" aria-label="Cambiar tema">☾</button>
-          <button id="logout-btn" class="btn btn--ghost btn--sm">Salir</button>
+    <!-- ── Sidebar (desktop) ── -->
+    <aside class="sidebar">
+      <div class="sidebar__brand">
+        <span class="brand__logo" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 4 22 9l-10 5L2 9l10-5Z" fill="currentColor"/><path d="M6 11.5V16c0 1.7 2.7 3 6 3s6-1.3 6-3v-4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </span>
+        <span class="sidebar__brand-text">
+          <strong translate="no">Mi Carrera</strong>
+          <span class="brand__sub">Plan 2023 · UNLaM</span>
+        </span>
+      </div>
+
+      <nav class="tabs" aria-label="Secciones">
+        <button class="tab tab--active" data-tab="plan" type="button" aria-current="page">
+          <svg class="tab__ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+          <span>Plan de Estudios</span>
+        </button>
+        <button class="tab" data-tab="grafo" type="button">
+          <svg class="tab__ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="2.6"/><circle cx="19" cy="6" r="2.6"/><circle cx="19" cy="18" r="2.6"/><path d="M7.4 11 16.6 6.8M7.4 13l9.2 4.2" stroke="currentColor" stroke-width="1.6" fill="none"/></svg>
+          <span>Correlativas</span>
+        </button>
+        <button class="tab" data-tab="plan-opt" type="button">
+          <svg class="tab__ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 10h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          <span>Planificador</span>
+        </button>
+        <button class="tab" data-tab="historial" type="button">
+          <svg class="tab__ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V10M12 20V4M19 20v-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" fill="none"/></svg>
+          <span>Historial</span>
+        </button>
+      </nav>
+
+      <div class="sidebar__foot">
+        <span class="user-chip" id="user-chip"></span>
+        <div class="sidebar__actions">
+          <button id="theme-toggle" class="icon-action" type="button" aria-label="Cambiar tema">☾</button>
+          <button id="logout-btn" class="btn btn--ghost btn--sm" type="button">Salir</button>
         </div>
       </div>
-    </header>
+    </aside>
 
-    <main class="page">
+    <!-- ── Columna principal ── -->
+    <div class="shell">
 
-      <!-- ============ TAB: PLAN ============ -->
-      <section class="tabpanel tabpanel--active" data-panel="plan">
+      <!-- Topbar (mobile) -->
+      <header class="topbar">
+        <div class="topbar__inner">
+          <div class="brand">
+            <span class="brand__logo" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 4 22 9l-10 5L2 9l10-5Z" fill="currentColor"/><path d="M6 11.5V16c0 1.7 2.7 3 6 3s6-1.3 6-3v-4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            </span>
+            <strong translate="no">Mi Carrera</strong>
+          </div>
+          <div class="topbar__right">
+            <button id="theme-toggle-m" class="icon-action" type="button" aria-label="Cambiar tema">☾</button>
+            <button id="logout-btn-m" class="btn btn--ghost btn--sm" type="button">Salir</button>
+          </div>
+        </div>
+      </header>
 
-        <div class="stats">
-          <div class="stat stat--progress">
-            <div class="stat__top">
-              <span class="stat__label">Carrera completada</span>
-              <span class="stat__big" id="st-porcentaje">0%</span>
+      <main class="page" id="contenido">
+
+        <!-- ════════ TAB: PLAN ════════ -->
+        <section class="tabpanel tabpanel--active" data-panel="plan" aria-label="Plan de Estudios">
+          <div class="page__head">
+            <h1>Plan de Estudios</h1>
+            <p class="muted">Tu avance materia por materia. Tocá cualquiera para cambiar su estado o su nota.</p>
+          </div>
+
+          <div class="stats">
+            <article class="stat stat--progress">
+              <div class="stat__top">
+                <span class="stat__label">Carrera Completada</span>
+                <span class="stat__big num" id="st-porcentaje">0%</span>
+              </div>
+              <div class="progressbar" role="progressbar" aria-labelledby="st-progress-lbl" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="st-progress-bar">
+                <div class="progressbar__fill" id="st-progress"></div>
+              </div>
+              <span class="stat__hint" id="st-progress-lbl"><span class="num" id="st-aprobadas">0</span> de <span class="num" id="st-total">0</span> materias aprobadas</span>
+            </article>
+
+            <article class="stat">
+              <span class="stat__num num" id="st-promedio">—</span>
+              <span class="stat__label">Promedio General</span>
+              <span class="stat__hint num" id="st-promedio-aplazos"></span>
+            </article>
+            <article class="stat">
+              <span class="stat__num stat__num--cyan num" id="st-disponibles">0</span>
+              <span class="stat__label">Disponibles Para Cursar</span>
+            </article>
+            <article class="stat">
+              <span class="stat__num stat__num--amber num" id="st-cursando">0</span>
+              <span class="stat__label">Cursando</span>
+            </article>
+            <article class="stat">
+              <span class="stat__num stat__num--slate num" id="st-restantes">0</span>
+              <span class="stat__label">Restantes</span>
+            </article>
+            <article class="stat stat--chart">
+              <canvas id="statusChart" width="220" height="120" role="img" aria-label="Distribución de materias por estado"></canvas>
+            </article>
+          </div>
+
+          <div class="legend" id="legend">
+            <span class="legend__item"><i class="dot dot--aprobada" aria-hidden="true"></i>Aprobada</span>
+            <span class="legend__item"><i class="dot dot--cursando" aria-hidden="true"></i>Cursando</span>
+            <span class="legend__item"><i class="dot dot--pendiente" aria-hidden="true"></i>Pendiente de final</span>
+            <span class="legend__item"><i class="dot dot--disponible" aria-hidden="true"></i>Disponible</span>
+            <span class="legend__item"><i class="dot dot--bloqueada" aria-hidden="true"></i>No disponible</span>
+            <span class="legend__hint">Hacé clic en una materia para editarla</span>
+          </div>
+
+          <div id="malla" class="malla"></div>
+
+          <section class="panel">
+            <div class="panel__head">
+              <h2>Listado de Materias</h2>
+              <div class="filters">
+                <div class="field-inline">
+                  <label class="sr-only" for="search-input">Buscar materia</label>
+                  <input id="search-input" name="buscar" type="search" autocomplete="off"
+                         placeholder="Buscar materia o código…">
+                </div>
+                <div class="field-inline">
+                  <label class="sr-only" for="status-filter">Filtrar por estado</label>
+                  <select id="status-filter" name="estado">
+                    <option value="all">Todos los estados</option>
+                    <option value="aprobada">Aprobadas</option>
+                    <option value="cursando">Cursando</option>
+                    <option value="pendiente de final">Pendientes de final</option>
+                    <option value="disponible">Disponibles</option>
+                    <option value="bloqueada">No disponibles</option>
+                  </select>
+                </div>
+                <button id="import-campus" class="btn btn--primary" type="button">Importar del Campus</button>
+                <button id="export-plan" class="btn btn--ghost" type="button">Exportar</button>
+                <button id="reset-plan" class="btn btn--danger" type="button">Reiniciar a 0%</button>
+              </div>
             </div>
-            <div class="progressbar"><div class="progressbar__fill" id="st-progress"></div></div>
-            <span class="stat__hint"><span id="st-aprobadas">0</span> de <span id="st-total">0</span> materias aprobadas</span>
-          </div>
-          <div class="stat">
-            <span class="stat__num" id="st-promedio">—</span>
-            <span class="stat__label">Promedio general</span>
-            <span class="stat__hint" id="st-promedio-aplazos"></span>
-          </div>
-          <div class="stat">
-            <span class="stat__num stat__num--cyan" id="st-disponibles">0</span>
-            <span class="stat__label">Disponibles para cursar</span>
-          </div>
-          <div class="stat">
-            <span class="stat__num stat__num--amber" id="st-cursando">0</span>
-            <span class="stat__label">Cursando</span>
-          </div>
-          <div class="stat">
-            <span class="stat__num stat__num--slate" id="st-restantes">0</span>
-            <span class="stat__label">Restantes</span>
-          </div>
-          <div class="stat stat--chart">
-            <canvas id="statusChart"></canvas>
-          </div>
-        </div>
+            <div class="table-wrap">
+              <table class="grid-table">
+                <caption class="sr-only">Materias del plan con su estado, correlativas y nota</caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Código</th><th scope="col">Materia</th><th scope="col">Año</th>
+                    <th scope="col">Trayecto</th><th scope="col">Estado</th>
+                    <th scope="col">Correlativas</th><th scope="col">Nota</th>
+                  </tr>
+                </thead>
+                <tbody id="subjects-body"></tbody>
+              </table>
+            </div>
+          </section>
+        </section>
 
-        <div class="legend" id="legend">
-          <span class="legend__item"><i class="dot dot--aprobada"></i>Aprobada</span>
-          <span class="legend__item"><i class="dot dot--cursando"></i>Cursando</span>
-          <span class="legend__item"><i class="dot dot--pendiente"></i>Pendiente de final</span>
-          <span class="legend__item"><i class="dot dot--disponible"></i>Disponible</span>
-          <span class="legend__item"><i class="dot dot--bloqueada"></i>No disponible</span>
-          <span class="legend__hint">Hacé clic en una materia para editar su estado y su nota</span>
-        </div>
+        <!-- ════════ TAB: CORRELATIVAS ════════ -->
+        <section class="tabpanel" data-panel="grafo" aria-label="Correlativas">
+          <div class="page__head">
+            <h1>Correlativas</h1>
+            <p class="muted">El árbol completo de la carrera. Las flechas van de la correlativa a la materia que habilita.</p>
+          </div>
 
-        <div id="malla" class="malla"></div>
+          <div class="legend">
+            <span class="legend__item"><i class="dot dot--aprobada" aria-hidden="true"></i>Aprobada</span>
+            <span class="legend__item"><i class="dot dot--cursando" aria-hidden="true"></i>Cursando</span>
+            <span class="legend__item"><i class="dot dot--pendiente" aria-hidden="true"></i>Pendiente de final</span>
+            <span class="legend__item"><i class="dot dot--disponible" aria-hidden="true"></i>Disponible</span>
+            <span class="legend__item"><i class="dot dot--bloqueada" aria-hidden="true"></i>No disponible</span>
+          </div>
 
-        <div class="panel">
-          <div class="panel__head">
-            <h2>Listado de materias</h2>
-            <div class="filters">
-              <input id="search-input" type="search" placeholder="Buscar materia o código…" />
-              <select id="status-filter">
-                <option value="all">Todos los estados</option>
-                <option value="aprobada">Aprobadas</option>
-                <option value="cursando">Cursando</option>
-                <option value="pendiente de final">Pendientes de final</option>
-                <option value="disponible">Disponibles</option>
-                <option value="bloqueada">No disponibles</option>
+          <div class="grafo-wrap">
+            <div id="grafo" class="grafo"></div>
+            <div class="grafo-controls">
+              <button id="grafo-zoom-in"  class="grafo-ctrl" type="button" aria-label="Acercar">+</button>
+              <button id="grafo-zoom-out" class="grafo-ctrl" type="button" aria-label="Alejar">−</button>
+              <button id="grafo-fit"      class="grafo-ctrl" type="button" aria-label="Centrar el grafo">⊡</button>
+            </div>
+            <div id="grafo-info" class="grafo-info" role="status" aria-live="polite">
+              <button id="grafo-info-close" class="grafo-info__close" type="button" aria-label="Cerrar detalle">✕</button>
+              <p id="grafo-info-title" class="grafo-info__title"></p>
+              <p id="grafo-info-meta"  class="grafo-info__meta"></p>
+              <button id="grafo-info-edit" class="btn btn--primary btn--sm" type="button">Editar Estado o Nota</button>
+            </div>
+            <p class="grafo-hint">Tocá un nodo para resaltar su cadena · doble clic para editar</p>
+          </div>
+        </section>
+
+        <!-- ════════ TAB: PLANIFICADOR ════════ -->
+        <section class="tabpanel" data-panel="plan-opt" aria-label="Planificador">
+          <div class="page__head">
+            <h1>Planificador de Cursada</h1>
+            <p class="muted">Armá tus cuatrimestres arrastrando materias, o calculá el camino más corto para recibirte. Respeta correlativas, tus franjas horarias y evita choques.</p>
+          </div>
+
+          <div class="plan-toolbar">
+            <fieldset class="plan-franjas">
+              <legend class="plan-franjas__lbl">Franjas</legend>
+              <label class="franja-opt"><input type="checkbox" class="franja-chk" name="franja" value="manana" checked> Mañana</label>
+              <label class="franja-opt"><input type="checkbox" class="franja-chk" name="franja" value="tarde" checked> Tarde</label>
+              <label class="franja-opt"><input type="checkbox" class="franja-chk" name="franja" value="noche" checked> Noche</label>
+            </fieldset>
+
+            <label class="plan-ctrl" for="plan-per-sem">Máx por cuatri
+              <input id="plan-per-sem" name="max-cuatri" type="number" inputmode="numeric" min="1" max="12" value="6" autocomplete="off">
+            </label>
+            <label class="plan-ctrl" for="plan-start">Arranca en
+              <select id="plan-start" name="inicio">
+                <option value="1°C">1° cuatrimestre</option>
+                <option value="2°C">2° cuatrimestre</option>
               </select>
-              <button id="import-campus" class="btn btn--primary">Importar del campus</button>
-              <button id="export-plan" class="btn btn--ghost">Exportar</button>
-              <button id="reset-plan" class="btn btn--danger">Reiniciar a 0%</button>
+            </label>
+
+            <div class="plan-toolbar__actions">
+              <button id="plan-calc" class="btn btn--primary" type="button">Calcular Plan Óptimo</button>
+              <button id="plan-add-cuatri" class="btn btn--ghost" type="button">Agregar Cuatrimestre</button>
             </div>
           </div>
-          <div class="table-wrap">
-            <table class="grid-table">
-              <thead>
-                <tr>
-                  <th>Código</th><th>Materia</th><th>Año</th><th>Trayecto</th>
-                  <th>Estado</th><th>Correlativas</th><th>Nota</th>
-                </tr>
-              </thead>
-              <tbody id="subjects-body"></tbody>
-            </table>
-          </div>
-        </div>
 
-      </section>
+          <div id="plan-summary" class="plan-summary" role="status" aria-live="polite"></div>
+          <div id="plan-output" class="plan-output"></div>
+        </section>
 
-      <!-- ============ TAB: CORRELATIVAS (GRAFO) ============ -->
-      <section class="tabpanel" data-panel="grafo">
-        <div class="legend">
-          <span class="legend__item"><i class="dot dot--aprobada"></i>Aprobada</span>
-          <span class="legend__item"><i class="dot dot--cursando"></i>Cursando</span>
-          <span class="legend__item"><i class="dot dot--pendiente"></i>Pendiente de final</span>
-          <span class="legend__item"><i class="dot dot--disponible"></i>Disponible</span>
-          <span class="legend__item"><i class="dot dot--bloqueada"></i>No disponible</span>
-          <span class="legend__hint">Las flechas van de la correlativa a la materia que habilita</span>
-        </div>
-        <div class="grafo-wrap">
-          <div id="grafo" class="grafo"></div>
-          <div class="grafo-controls">
-            <button id="grafo-zoom-in"  class="grafo-ctrl" title="Acercar" aria-label="Acercar">+</button>
-            <button id="grafo-zoom-out" class="grafo-ctrl" title="Alejar" aria-label="Alejar">−</button>
-            <button id="grafo-fit"      class="grafo-ctrl" title="Centrar" aria-label="Centrar">⊡</button>
+        <!-- ════════ TAB: HISTORIAL ════════ -->
+        <section class="tabpanel" data-panel="historial" aria-label="Historial de Notas">
+          <div class="page__head page__head--row">
+            <div>
+              <h1>Historial de Notas</h1>
+              <p class="muted">Tu registro por cuatrimestre. Editá las celdas y agregá materias cuando llegan las notas.</p>
+            </div>
+            <div class="filters">
+              <button id="add-semestre" class="btn btn--primary" type="button">Agregar Cuatrimestre</button>
+              <button id="export-historial" class="btn btn--ghost" type="button">Exportar</button>
+              <button id="reset-historial" class="btn btn--danger" type="button">Vaciar Historial</button>
+            </div>
           </div>
-          <div id="grafo-info" class="grafo-info">
-            <button id="grafo-info-close" class="grafo-info__close" aria-label="Cerrar">✕</button>
-            <div id="grafo-info-title" class="grafo-info__title"></div>
-            <div id="grafo-info-meta"  class="grafo-info__meta"></div>
-            <button id="grafo-info-edit" class="btn btn--primary btn--sm">Editar estado / nota</button>
-          </div>
-          <div class="grafo-hint">Tocá un nodo para resaltar su cadena de correlativas · doble clic para editar</div>
-        </div>
-      </section>
+          <div id="historial-container" class="historial"></div>
+        </section>
 
-      <!-- ============ TAB: PLANIFICADOR ============ -->
-      <section class="tabpanel" data-panel="plan-opt">
-        <div class="panel__head panel__head--page">
-          <div>
-            <h2>Planificador de cursada</h2>
-            <p class="muted">Armá tus cuatrimestres a mano o calculá el plan óptimo. Cada cuatrimestre se puede optimizar por separado: asume aprobadas las reales y todas las de los cuatrimestres anteriores. Respeta correlativas, las franjas elegidas y evita choques de horario.</p>
-          </div>
-        </div>
-        <div class="plan-toolbar">
-          <div class="plan-franjas">
-            <span class="plan-franjas__lbl">Franjas:</span>
-            <label class="franja-opt"><input type="checkbox" class="franja-chk" value="manana" checked> Mañana</label>
-            <label class="franja-opt"><input type="checkbox" class="franja-chk" value="tarde" checked> Tarde</label>
-            <label class="franja-opt"><input type="checkbox" class="franja-chk" value="noche" checked> Noche</label>
-          </div>
-          <label class="plan-ctrl">Máx por cuatri
-            <input id="plan-per-sem" type="number" min="1" max="12" value="6">
-          </label>
-          <label class="plan-ctrl">Arranca en
-            <select id="plan-start">
-              <option value="1°C">1° cuatrimestre</option>
-              <option value="2°C">2° cuatrimestre</option>
-            </select>
-          </label>
-          <button id="plan-calc" class="btn btn--primary">Calcular plan óptimo</button>
-          <button id="plan-add-cuatri" class="btn btn--ghost">+ Cuatrimestre</button>
-        </div>
-        <div id="plan-summary" class="plan-summary"></div>
-        <div id="plan-output" class="plan-output"></div>
-      </section>
+      </main>
 
-      <!-- ============ TAB: HISTORIAL ============ -->
-      <section class="tabpanel" data-panel="historial">
-        <div class="panel__head panel__head--page">
-          <div>
-            <h2>Historial de Notas</h2>
-            <p class="muted">Tu registro por cuatrimestre. Editá las celdas y agregá materias a medida que llegan las notas.</p>
-          </div>
-          <div class="filters">
-            <button id="add-semestre" class="btn btn--primary">+ Cuatrimestre</button>
-            <button id="export-historial" class="btn btn--ghost">Exportar</button>
-            <button id="reset-historial" class="btn btn--danger">Vaciar historial</button>
-          </div>
-        </div>
-        <div id="historial-container" class="historial"></div>
-      </section>
+      <footer class="foot">
+        <p>Datos basados en el Plan de Estudios 2023 — <span translate="no">UNLaM · DIIT</span></p>
+      </footer>
+    </div>
 
-    </main>
+    <!-- ── Bottom nav (mobile) ── -->
+    <nav class="mobilenav" aria-label="Secciones">
+      <button class="tab tab--active" data-tab="plan" type="button">
+        <svg class="tab__ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+        <span>Plan</span>
+      </button>
+      <button class="tab" data-tab="grafo" type="button">
+        <svg class="tab__ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="2.6"/><circle cx="19" cy="6" r="2.6"/><circle cx="19" cy="18" r="2.6"/><path d="M7.4 11 16.6 6.8M7.4 13l9.2 4.2" stroke="currentColor" stroke-width="1.6" fill="none"/></svg>
+        <span>Correlativas</span>
+      </button>
+      <button class="tab" data-tab="plan-opt" type="button">
+        <svg class="tab__ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 10h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        <span>Planificador</span>
+      </button>
+      <button class="tab" data-tab="historial" type="button">
+        <svg class="tab__ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V10M12 20V4M19 20v-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" fill="none"/></svg>
+        <span>Historial</span>
+      </button>
+    </nav>
 
-    <!-- ============ MODAL EDITOR DE MATERIA ============ -->
+    <!-- ════════ MODAL: EDITOR DE MATERIA ════════ -->
     <div class="modal-backdrop" id="modal-backdrop">
-      <div class="modal" id="modal" role="dialog" aria-modal="true">
-        <div class="modal__code"  id="modal-code"></div>
-        <div class="modal__title" id="modal-title"></div>
-        <div class="modal__meta"  id="modal-meta"></div>
-        <div class="modal__corr"  id="modal-corr"></div>
-        <div class="modal__field-label">Estado</div>
-        <div class="state-options" id="modal-states"></div>
+      <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <p class="modal__code num" id="modal-code"></p>
+        <h2 class="modal__title" id="modal-title"></h2>
+        <p class="modal__meta"  id="modal-meta"></p>
+        <p class="modal__corr"  id="modal-corr"></p>
+
+        <p class="modal__field-label" id="modal-estado-lbl">Estado</p>
+        <div class="state-options" id="modal-states" role="group" aria-labelledby="modal-estado-lbl"></div>
+
         <div class="modal__nota-row" id="modal-nota-row">
-          <div class="modal__field-label" style="margin:0">Nota</div>
-          <input type="number" min="1" max="10" id="modal-nota" placeholder="—">
+          <label class="modal__field-label" for="modal-nota">Nota</label>
+          <input type="number" inputmode="numeric" min="1" max="10" id="modal-nota" name="nota" placeholder="—" autocomplete="off">
         </div>
+
         <div class="modal__actions">
-          <button class="btn btn--ghost" id="modal-close">Cerrar</button>
+          <button class="btn btn--ghost" id="modal-close" type="button">Cerrar</button>
         </div>
       </div>
     </div>
 
-    <!-- ============ MODAL IMPORTAR DEL CAMPUS ============ -->
+    <!-- ════════ MODAL: IMPORTAR DEL CAMPUS ════════ -->
     <div class="modal-backdrop" id="import-backdrop">
-      <div class="modal modal--wide" role="dialog" aria-modal="true">
-        <div class="modal__title">Importar del campus</div>
+      <div class="modal modal--wide" role="dialog" aria-modal="true" aria-labelledby="import-title">
+        <h2 class="modal__title" id="import-title">Importar del Campus</h2>
         <p class="modal__meta">Copiá y pegá la tabla de la Intraconsulta (Historia Académica o Materias Regularizadas). Detectamos código, nota y estado automáticamente.</p>
-        <div class="modal__field-label">¿Qué estás pegando?</div>
-        <div class="import-tipo">
+
+        <fieldset class="import-tipo">
+          <legend class="modal__field-label">¿Qué estás pegando?</legend>
           <label><input type="radio" name="import-tipo" value="aprobadas" checked> Aprobadas / Historia Académica</label>
           <label><input type="radio" name="import-tipo" value="regularizadas"> Materias Regularizadas</label>
-        </div>
-        <textarea id="import-text" class="import-text" rows="8" placeholder="Pegá acá el texto del campus…"></textarea>
-        <div id="import-preview" class="import-preview"></div>
+        </fieldset>
+
+        <label class="sr-only" for="import-text">Texto copiado del campus</label>
+        <textarea id="import-text" class="import-text" name="import" rows="8" spellcheck="false"
+                  placeholder="Pegá acá el texto del campus…"></textarea>
+
+        <div id="import-preview" class="import-preview" role="status" aria-live="polite"></div>
+
         <div class="modal__actions">
-          <button class="btn btn--ghost" id="import-close">Cancelar</button>
-          <button class="btn btn--ghost" id="import-analizar">Analizar</button>
-          <button class="btn btn--primary" id="import-aplicar" disabled>Aplicar</button>
+          <button class="btn btn--ghost" id="import-close" type="button">Cancelar</button>
+          <button class="btn btn--ghost" id="import-analizar" type="button">Analizar</button>
+          <button class="btn btn--primary" id="import-aplicar" type="button" disabled>Aplicar Cambios</button>
         </div>
       </div>
     </div>
-
-    <footer class="foot">
-      <span>Datos basados en el Plan de Estudios 2023 — UNLaM · DIIT</span>
-    </footer>
 
   </div><!-- /#app -->
 
