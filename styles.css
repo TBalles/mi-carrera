@@ -606,6 +606,18 @@ button { cursor: pointer; }
 /* ══════════════════════════════════════════════════════════
    GRAFO
    ══════════════════════════════════════════════════════════ */
+/* En la pestaña de correlativas el contenedor se adapta a la pantalla:
+   rompe el ancho máximo de .page y usa el alto disponible del viewport. */
+@media (min-width: 901px) {
+  #app[data-active-tab="grafo"] .page { max-width: none; }
+  #app[data-active-tab="grafo"] .tabpanel[data-panel="grafo"] { display: flex; flex-direction: column; }
+  #app[data-active-tab="grafo"] .grafo-wrap {
+    flex: 1 1 auto;
+    height: auto;
+    min-height: calc(100vh - 260px);
+  }
+}
+
 .grafo-wrap {
   position: relative; height: 72vh; min-height: 440px;
   border: 1px solid var(--line); border-radius: var(--r-lg);
