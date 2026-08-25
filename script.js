@@ -1205,10 +1205,13 @@ function fitGrafo() {
   const cw = host.clientWidth, ch = host.clientHeight;
   if (cw < 10 || ch < 10) return;
   const pad = 28;
-  const s = clampNum(Math.min((cw - pad * 2) / grafoLayout.width, (ch - pad * 2) / grafoLayout.height), 0.18, 1.4);
+  // Priorizar el ancho: que el grafo ocupe todo el espacio horizontal.
+  // Si al hacerlo se pasa de alto, se navega con scroll/pan vertical.
+  const s = clampNum((cw - pad * 2) / grafoLayout.width, 0.18, 1.4);
   grafoView.s = s;
-  grafoView.tx = Math.max(pad, (cw - grafoLayout.width * s) / 2);
-  grafoView.ty = Math.max(pad, (ch - grafoLayout.height * s) / 2);   // centrado vertical
+  const scaledW = grafoLayout.width * s, scaledH = grafoLayout.height * s;
+  grafoView.tx = scaledW <= cw ? (cw - scaledW) / 2 : pad;
+  grafoView.ty = scaledH <= ch ? (ch - scaledH) / 2 : pad;
   grafoFitted = true;
   applyGrafoTransform();
 }
