@@ -295,6 +295,28 @@ function initTabs() {
 }
 
 /* ════════════════════════════════════════════════════════
+   Colapsar / expandir la sidebar (desktop)
+   ════════════════════════════════════════════════════════ */
+const STORE_NAV = 'plan.nav.v1';
+function initNavCollapse() {
+  const app = document.getElementById('app');
+  const btn = document.getElementById('nav-collapse');
+  if (!btn) return;
+  const aplicar = colapsada => {
+    app.classList.toggle('nav-collapsed', colapsada);
+    btn.textContent = colapsada ? '»' : '«';
+    btn.setAttribute('aria-label', colapsada ? 'Expandir menú' : 'Colapsar menú');
+    btn.title = btn.getAttribute('aria-label');
+  };
+  aplicar(localStorage.getItem(STORE_NAV) === 'closed');
+  btn.addEventListener('click', () => {
+    const colapsada = !app.classList.contains('nav-collapsed');
+    localStorage.setItem(STORE_NAV, colapsada ? 'closed' : 'open');
+    aplicar(colapsada);
+  });
+}
+
+/* ════════════════════════════════════════════════════════
    Auto-ocultar el header al bajar (solo pantallas chicas)
    ════════════════════════════════════════════════════════ */
 function initTopbarAutohide() {
@@ -998,7 +1020,15 @@ function descargar(nombre, contenido) {
 /* ════════════════════════════════════════════════════════
    Árbol / grafo de correlatividades
    ════════════════════════════════════════════════════════ */
-const GNODE_W = 210, GNODE_H = 58, GCOL_GAP = 72, GROW_GAP = 16, GMARGIN = 30, GHEAD = 30;
+const GCOL_GAP = 80, GROW_GAP = 18, GMARGIN = 30, GHEAD = 30;
+const GCHAR_W = 6.7, GPAD_L = 28, GPAD_R = 16, GNODE_MIN_W = 150, GNODE_MAX_W = 300;
+function grafoNodeSize(item) {
+  const lines = wrapName(item.materia);
+  const maxChars = Math.max(String(item.codigo).length + 2, ...lines.map(l => l.length));
+  const w = clampNum(Math.round(maxChars * GCHAR_W + GPAD_L + GPAD_R), GNODE_MIN_W, GNODE_MAX_W);
+  const h = 22 + lines.length * 16 + 12;
+  return { w, h, lines };
+}
 const GNAME_MAXCHARS = 27, GNAME_MAXLINES = 2;
 
 // Parte el nombre en hasta N líneas para que entre completo en el nodo
@@ -1075,24 +1105,34 @@ function computeGrafoLayout() {
   const byCol = {};
   planData.forEach(it => { (byCol[grafoCol(it)] = byCol[grafoCol(it)] || []).push(it); });
   const cols = Object.keys(byCol).map(Number).sort((a, b) => a - b);
+  const sizes = new Map();
+  cols.forEach(c => byCol[c].forEach(it => sizes.set(it.codigo, grafoNodeSize(it))));
+
+  const colH = {}, colW = {};
+  cols.forEach(c => {
+    colH[c] = byCol[c].reduce((a, it) => a + sizes.get(it.codigo).h, 0) + Math.max(0, byCol[c].length - 1) * GROW_GAP;
+    colW[c] = Math.max(...byCol[c].map(it => sizes.get(it.codigo).w));
+  });
+  const maxColH = Math.max(0, ...Object.values(colH));
+
   const nodes = new Map();
-  let maxRows = 0;
+  const colInfo = {};
+  let x = GMARGIN;
   cols.forEach(c => {
     byCol[c].sort((a, b) => a.codigo - b.codigo);
-    byCol[c].forEach((it, row) => {
-      nodes.set(it.codigo, {
-        x: GMARGIN + c * (GNODE_W + GCOL_GAP),
-        y: GMARGIN + GHEAD + row * (GNODE_H + GROW_GAP),
-        item: it,
-      });
+    colInfo[c] = { x, w: colW[c] };
+    let y = GMARGIN + GHEAD + (maxColH - colH[c]) / 2;   // centrado vertical → efecto abanico
+    byCol[c].forEach(it => {
+      const s = sizes.get(it.codigo);
+      nodes.set(it.codigo, { x, y, w: s.w, h: s.h, lines: s.lines, item: it });
+      y += s.h + GROW_GAP;
     });
-    maxRows = Math.max(maxRows, byCol[c].length);
+    x += colW[c] + GCOL_GAP;
   });
-  const lastCol = cols.length ? cols[cols.length - 1] : 0;
   grafoLayout = {
-    nodes, cols,
-    width:  GMARGIN * 2 + lastCol * (GNODE_W + GCOL_GAP) + GNODE_W,
-    height: GMARGIN * 2 + GHEAD + maxRows * (GNODE_H + GROW_GAP),
+    nodes, cols, colInfo,
+    width:  x - GCOL_GAP + GMARGIN,
+    height: GMARGIN * 2 + GHEAD + maxColH,
   };
 }
 
@@ -1101,15 +1141,15 @@ function renderGrafo() {
   if (!host || !planData.length) return;
   if (!dependentsOf) buildDependents();
   computeGrafoLayout();
-  const { nodes, cols } = grafoLayout;
+  const { nodes, cols, colInfo } = grafoLayout;
 
   let edges = '';
   planData.forEach(it => {
     const to = nodes.get(it.codigo); if (!to) return;
     (correlativas[it.codigo] || []).forEach(p => {
       const from = nodes.get(p); if (!from) return;
-      const x1 = from.x + GNODE_W, y1 = from.y + GNODE_H / 2;
-      const x2 = to.x,            y2 = to.y + GNODE_H / 2;
+      const x1 = from.x + from.w, y1 = from.y + from.h / 2;
+      const x2 = to.x,            y2 = to.y + to.h / 2;
       const dx = Math.max(36, Math.abs(x2 - x1) * 0.45);
       edges += `<path class="gedge" data-from="${p}" data-to="${it.codigo}" d="M${x1},${y1} C${x1 + dx},${y1} ${x2 - dx},${y2} ${x2},${y2}"/>`;
     });
@@ -1117,24 +1157,23 @@ function renderGrafo() {
 
   let heads = '';
   cols.forEach(c => {
-    const cx = GMARGIN + c * (GNODE_W + GCOL_GAP) + GNODE_W / 2;
-    heads += `<text class="gcol-label" x="${cx}" y="${GMARGIN + 12}">${grafoColLabel(c)}</text>`;
+    const info = colInfo[c];
+    heads += `<text class="gcol-label" x="${info.x + info.w / 2}" y="${GMARGIN + 12}">${grafoColLabel(c)}</text>`;
   });
 
   let gnodes = '';
-  nodes.forEach(({ x, y, item }) => {
+  nodes.forEach(({ x, y, w, h, lines, item }) => {
     const st = displayStatus(item);
     const tx = x + 28;
-    const lines = wrapName(item.materia);
-    const baseY = lines.length === 1 ? y + 39 : y + 34;
+    const baseY = lines.length === 1 ? y + h / 2 + 12 : y + 34;
     const nameSvg = lines.map((ln, i) =>
-      `<text class="gnode-name" x="${tx}" y="${baseY + i * 15}">${escAttr(ln)}</text>`
+      `<text class="gnode-name" x="${tx}" y="${baseY + i * 16}">${escAttr(ln)}</text>`
     ).join('');
     const nota = (item.estado === 'aprobada' && item.nota > 0)
-      ? `<text class="gnode-nota" x="${x + GNODE_W - 12}" y="${y + 19}">${item.nota}</text>` : '';
+      ? `<text class="gnode-nota" x="${x + w - 12}" y="${y + 19}">${item.nota}</text>` : '';
     gnodes += `<g class="gnode gnode--${st}" data-codigo="${item.codigo}">
-      <rect x="${x}" y="${y}" width="${GNODE_W}" height="${GNODE_H}" rx="13"/>
-      <circle class="gnode-dot" cx="${x + 15}" cy="${y + GNODE_H / 2}" r="4.5"/>
+      <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="13"/>
+      <circle class="gnode-dot" cx="${x + 15}" cy="${y + 19}" r="4.5"/>
       <text class="gnode-code" x="${tx}" y="${y + 19}">${item.codigo}</text>
       ${nameSvg}
       ${nota}
@@ -1872,6 +1911,7 @@ async function enterApp() {
 window.addEventListener('DOMContentLoaded', async () => {
   initTheme();
   initTabs();
+  initNavCollapse();
   initModal();
   initImportador();
   initPlanControls();
