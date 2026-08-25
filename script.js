@@ -287,11 +287,18 @@ function initTabs() {
       if (on) x.setAttribute('aria-current', 'page'); else x.removeAttribute('aria-current');
     });
     panels.forEach(p => p.classList.toggle('tabpanel--active', p.dataset.panel === target));
+    const app = document.getElementById('app');
+    if (app) app.setAttribute('data-active-tab', target);
+    // El contenedor del grafo cambia de tamaño al mostrarse: reajustar el fit.
+    if (target === 'grafo') requestAnimationFrame(() => { grafoFitted = false; renderGrafo(); });
   };
   tabs.forEach(t => t.addEventListener('click', () => {
     activar(t.dataset.tab);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }));
+  const inicial = document.querySelector('.tabpanel--active');
+  const app = document.getElementById('app');
+  if (inicial && app) app.setAttribute('data-active-tab', inicial.dataset.panel);
 }
 
 /* ════════════════════════════════════════════════════════
