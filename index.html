@@ -93,6 +93,10 @@
           <svg class="tab__ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 10h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
           <span>Planificador</span>
         </button>
+        <button class="tab" data-tab="calendario" type="button">
+          <svg class="tab__ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 10h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="8" cy="14" r="1.4" fill="currentColor"/><circle cx="12" cy="14" r="1.4" fill="currentColor"/><circle cx="16" cy="14" r="1.4" fill="currentColor"/></svg>
+          <span>Calendario</span>
+        </button>
         <button class="tab" data-tab="historial" type="button">
           <svg class="tab__ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V10M12 20V4M19 20v-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" fill="none"/></svg>
           <span>Historial</span>
@@ -305,6 +309,42 @@
           <div id="historial-container" class="historial"></div>
         </section>
 
+        <!-- ════════ TAB: CALENDARIO ════════ -->
+        <section class="tabpanel" data-panel="calendario" aria-label="Calendario">
+          <div class="page__head">
+            <h1>Calendario</h1>
+            <p class="muted">Anotá exámenes, entregas de TP y trámites. Tocá un día para agregar o filtrá por tipo.</p>
+          </div>
+
+          <div class="cal-toolbar">
+            <div class="cal-nav">
+              <button id="cal-prev" class="cal-navbtn" type="button" aria-label="Mes anterior">‹</button>
+              <strong id="cal-titulo" class="cal-titulo">—</strong>
+              <button id="cal-next" class="cal-navbtn" type="button" aria-label="Mes siguiente">›</button>
+              <button id="cal-hoy" class="btn btn--ghost btn--sm" type="button">Hoy</button>
+            </div>
+            <div class="cal-filtros" role="group" aria-label="Filtros">
+              <button class="cal-filtro cal-filtro--examen" data-tipo="examen" type="button" aria-pressed="true"><i class="cal-dot cal-dot--examen"></i>Exámenes</button>
+              <button class="cal-filtro cal-filtro--tp" data-tipo="tp" type="button" aria-pressed="true"><i class="cal-dot cal-dot--tp"></i>Entregas TP</button>
+              <button class="cal-filtro cal-filtro--admin" data-tipo="admin" type="button" aria-pressed="true"><i class="cal-dot cal-dot--admin"></i>Administración</button>
+              <button id="cal-add" class="btn btn--primary btn--sm" type="button">+ Agregar</button>
+            </div>
+          </div>
+
+          <div class="cal-layout">
+            <div class="cal-cal">
+              <div class="cal-weekdays">
+                <span>Lun</span><span>Mar</span><span>Mié</span><span>Jue</span><span>Vie</span><span>Sáb</span><span>Dom</span>
+              </div>
+              <div id="cal-grid" class="cal-grid"></div>
+            </div>
+            <aside class="cal-side">
+              <h2 class="cal-side__title" id="cal-lista-titulo">Este mes</h2>
+              <div id="cal-lista" class="cal-lista"></div>
+            </aside>
+          </div>
+        </section>
+
       </main>
 
       <footer class="foot">
@@ -325,6 +365,10 @@
       <button class="tab" data-tab="plan-opt" type="button">
         <svg class="tab__ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 10h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
         <span>Planificador</span>
+      </button>
+      <button class="tab" data-tab="calendario" type="button">
+        <svg class="tab__ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 10h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="8" cy="14" r="1.4" fill="currentColor"/><circle cx="12" cy="14" r="1.4" fill="currentColor"/><circle cx="16" cy="14" r="1.4" fill="currentColor"/></svg>
+        <span>Calendario</span>
       </button>
       <button class="tab" data-tab="historial" type="button">
         <svg class="tab__ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V10M12 20V4M19 20v-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" fill="none"/></svg>
@@ -377,6 +421,35 @@
           <button class="btn btn--ghost" id="import-analizar" type="button">Analizar</button>
           <button class="btn btn--primary" id="import-aplicar" type="button" disabled>Aplicar Cambios</button>
         </div>
+      </div>
+    </div>
+
+    <!-- ════════ MODAL: ANOTACIÓN DEL CALENDARIO ════════ -->
+    <div class="modal-backdrop" id="cal-modal-backdrop">
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="cal-modal-title">
+        <h2 class="modal__title" id="cal-modal-title">Nueva anotación</h2>
+
+        <p class="modal__field-label">Tipo</p>
+        <div class="cal-tipos" role="group" aria-label="Tipo de anotación">
+          <button class="cal-tipo-opt cal-tipo-opt--on cal-tipo-opt--examen" data-tipo="examen" type="button" aria-pressed="true"><i class="cal-dot cal-dot--examen"></i>Examen</button>
+          <button class="cal-tipo-opt cal-tipo-opt--tp" data-tipo="tp" type="button" aria-pressed="false"><i class="cal-dot cal-dot--tp"></i>Entrega de TP</button>
+          <button class="cal-tipo-opt cal-tipo-opt--admin" data-tipo="admin" type="button" aria-pressed="false"><i class="cal-dot cal-dot--admin"></i>Administración</button>
+        </div>
+
+        <div class="cal-modal-row">
+          <label class="modal__field-label" for="cal-modal-fecha">Fecha</label>
+          <input type="date" id="cal-modal-fecha" name="cal-fecha" autocomplete="off">
+        </div>
+
+        <label class="modal__field-label" for="cal-modal-texto">Anotación</label>
+        <textarea id="cal-modal-texto" class="cal-modal-texto" name="cal-texto" rows="3" placeholder="Ej: Final de Álgebra, entrega TP2, inscripción a finales…"></textarea>
+
+        <div class="modal__actions">
+          <button class="btn btn--danger btn--sm" id="cal-modal-del" type="button" style="display:none">Borrar</button>
+          <button class="btn btn--ghost" id="cal-modal-cancel" type="button">Cancelar</button>
+          <button class="btn btn--primary" id="cal-modal-save" type="button">Guardar</button>
+        </div>
+        <button class="modal__x" id="cal-modal-close" type="button" aria-label="Cerrar">✕</button>
       </div>
     </div>
 
