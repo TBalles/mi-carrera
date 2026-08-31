@@ -13,6 +13,7 @@ let statusChart = null;
 let currentUser = null;          // objeto user de Supabase
 let oferta = {};                 // codigo -> [comisiones] (horarios por materia)
 let plannerState = null;         // plan editable del usuario (persistido)
+let calendarData = [];           // [{id, fecha:'YYYY-MM-DD', tipo:'examen|tp|admin', texto}]
 
 const STORE_THEME = 'plan.theme.v1';
 
@@ -62,6 +63,7 @@ async function loadUserData() {
     else if (row.key === 'aplazos')  customAplazos = row.value || {};
     else if (row.key === 'historial') historialData = row.value || [];
     else if (row.key === 'planner')   plannerState = row.value || null;
+    else if (row.key === 'calendario') calendarData = Array.isArray(row.value) ? row.value : [];
   }
 }
 
@@ -567,6 +569,7 @@ function renderAll() {
   renderTable();
   renderGrafo();
   renderPlanificador();
+  renderCalendario();
 }
 
 function getStats() {
@@ -1916,6 +1919,270 @@ async function enterApp() {
 }
 
 /* ════════════════════════════════════════════════════════
+   Calendario académico (anotaciones con filtros)
+   ────────────────────────────────────────────────────────
+   3 categorías: exámenes, entregas de TP y administración
+   (inscripciones, finales, etc). Cada anotación se guarda en
+   la nube bajo la key 'calendario'.
+   ════════════════════════════════════════════════════════ */
+const CAL_TIPOS = {
+  examen: { label: 'Examen',         corto: 'Examen' },
+  tp:     { label: 'Entrega de TP',  corto: 'TP' },
+  admin:  { label: 'Administración', corto: 'Admin' },
+};
+const CAL_MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const CAL_DIAS  = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+const STORE_CAL_SEED = 'plan.calSeed.v1';
+
+let calView = { anio: 0, mes: 0 };        // mes 0-11
+let calFiltros = { examen: true, tp: true, admin: true };
+let calDiaSel = null;                      // 'YYYY-MM-DD' resaltado
+
+function calHoyISO() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+function calFechaISO(anio, mes, dia) {
+  return `${anio}-${String(mes + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
+}
+function calFmtLargo(iso) {
+  const [a, m, d] = iso.split('-').map(Number);
+  return `${d} de ${CAL_MESES[m - 1]} de ${a}`;
+}
+function calGuardar() { saveData('calendario', calendarData); }
+
+// Pre-carga fechas administrativas reales de la UNLaM (una sola vez por usuario).
+// Fuente: calendario académico UNLaM 2026.
+function calSeedUNLaM() {
+  if (calendarData.length || localStorage.getItem(STORE_CAL_SEED) === 'done') return;
+  const seeds = [
+    { fecha: '2026-03-06', tipo: 'admin', texto: 'Inscripción a materias EFC (1º cuatrimestre)' },
+    { fecha: '2026-03-09', tipo: 'admin', texto: 'Inscripción a materias de Departamentos (1º cuatri) — del 9 al 12/03' },
+    { fecha: '2026-07-24', tipo: 'admin', texto: 'Inscripción a materias EFC (2º cuatrimestre)' },
+    { fecha: '2026-07-27', tipo: 'admin', texto: 'Inscripción a materias de Departamentos (2º cuatri) — del 27 al 30/07' },
+  ];
+  seeds.forEach(s => calendarData.push({ id: calNuevoId(), ...s }));
+  localStorage.setItem(STORE_CAL_SEED, 'done');
+  calGuardar();
+}
+
+function calNuevoId() {
+  return 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+}
+
+function initCalendario() {
+  const hoy = new Date();
+  calView = { anio: hoy.getFullYear(), mes: hoy.getMonth() };
+
+  document.getElementById('cal-prev')?.addEventListener('click', () => calMover(-1));
+  document.getElementById('cal-next')?.addEventListener('click', () => calMover(1));
+  document.getElementById('cal-hoy')?.addEventListener('click', () => {
+    const d = new Date();
+    calView = { anio: d.getFullYear(), mes: d.getMonth() };
+    calDiaSel = calHoyISO();
+    renderCalendario();
+  });
+
+  document.querySelectorAll('.cal-filtro').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const t = chip.dataset.tipo;
+      calFiltros[t] = !calFiltros[t];
+      chip.classList.toggle('cal-filtro--off', !calFiltros[t]);
+      chip.setAttribute('aria-pressed', String(calFiltros[t]));
+      renderCalendario();
+    });
+  });
+
+  document.getElementById('cal-add')?.addEventListener('click', () => calAbrirEditor(null, calDiaSel || calHoyISO()));
+
+  // Grilla: click en un día lo selecciona; click en "+" agrega
+  const grid = document.getElementById('cal-grid');
+  grid?.addEventListener('click', e => {
+    const addBtn = e.target.closest('.cal-cell__add');
+    if (addBtn) { calAbrirEditor(null, addBtn.closest('.cal-cell').dataset.fecha); return; }
+    const cell = e.target.closest('.cal-cell');
+    if (cell && cell.dataset.fecha) { calDiaSel = cell.dataset.fecha; renderCalendario(); }
+  });
+
+  // Lista de eventos: editar / borrar
+  const lista = document.getElementById('cal-lista');
+  lista?.addEventListener('click', e => {
+    const item = e.target.closest('.cal-evento');
+    if (!item) return;
+    const id = item.dataset.id;
+    if (e.target.closest('.cal-evento__del')) { calBorrar(id); return; }
+    calAbrirEditor(id);
+  });
+
+  // Modal
+  document.getElementById('cal-modal-close')?.addEventListener('click', calCerrarEditor);
+  document.getElementById('cal-modal-cancel')?.addEventListener('click', calCerrarEditor);
+  document.getElementById('cal-modal-save')?.addEventListener('click', calGuardarEditor);
+  document.getElementById('cal-modal-del')?.addEventListener('click', () => {
+    if (calEditId) { const id = calEditId; calCerrarEditor(); calBorrar(id); }
+  });
+  document.getElementById('cal-modal-backdrop')?.addEventListener('click', e => {
+    if (e.target.id === 'cal-modal-backdrop') calCerrarEditor();
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && document.getElementById('cal-modal-backdrop')?.classList.contains('open')) calCerrarEditor();
+  });
+}
+
+function calMover(delta) {
+  let m = calView.mes + delta, a = calView.anio;
+  if (m < 0) { m = 11; a--; } else if (m > 11) { m = 0; a++; }
+  calView = { anio: a, mes: m };
+  renderCalendario();
+}
+
+function calEventosVisibles() {
+  return calendarData.filter(ev => calFiltros[ev.tipo] !== false);
+}
+
+function renderCalendario() {
+  const grid = document.getElementById('cal-grid');
+  if (!grid) return;
+  calSeedUNLaM();
+
+  const { anio, mes } = calView;
+  document.getElementById('cal-titulo').textContent = `${CAL_MESES[mes]} ${anio}`;
+
+  // Índice de eventos por fecha (respetando filtros)
+  const porFecha = {};
+  calEventosVisibles().forEach(ev => { (porFecha[ev.fecha] = porFecha[ev.fecha] || []).push(ev); });
+
+  // Primer día de la grilla: lunes de la semana del día 1
+  const primero = new Date(anio, mes, 1);
+  const offset = (primero.getDay() + 6) % 7;   // 0=lunes
+  const diasEnMes = new Date(anio, mes + 1, 0).getDate();
+  const hoyISO = calHoyISO();
+
+  let cells = '';
+  const totalCeldas = Math.ceil((offset + diasEnMes) / 7) * 7;
+  for (let i = 0; i < totalCeldas; i++) {
+    const diaNum = i - offset + 1;
+    if (diaNum < 1 || diaNum > diasEnMes) { cells += `<div class="cal-cell cal-cell--empty"></div>`; continue; }
+    const iso = calFechaISO(anio, mes, diaNum);
+    const evs = porFecha[iso] || [];
+    const dots = [...new Set(evs.map(e => e.tipo))]
+      .map(t => `<i class="cal-dot cal-dot--${t}" title="${CAL_TIPOS[t].label}"></i>`).join('');
+    const masLbl = evs.length ? `<span class="cal-cell__count">${evs.length}</span>` : '';
+    const clases = ['cal-cell'];
+    if (iso === hoyISO) clases.push('cal-cell--hoy');
+    if (iso === calDiaSel) clases.push('cal-cell--sel');
+    if (evs.length) clases.push('cal-cell--has');
+    cells += `<div class="${clases.join(' ')}" data-fecha="${iso}" role="button" tabindex="0" aria-label="${calFmtLargo(iso)}${evs.length ? `, ${evs.length} anotaciones` : ''}">
+      <span class="cal-cell__num">${diaNum}</span>
+      <button class="cal-cell__add" type="button" aria-label="Agregar anotación el ${calFmtLargo(iso)}">+</button>
+      <span class="cal-cell__dots">${dots}</span>
+      ${masLbl}
+    </div>`;
+  }
+  grid.innerHTML = cells;
+
+  calRenderLista();
+}
+
+function calRenderLista() {
+  const cont = document.getElementById('cal-lista');
+  if (!cont) return;
+  const { anio, mes } = calView;
+  const titulo = document.getElementById('cal-lista-titulo');
+
+  let evs, encabezado;
+  if (calDiaSel && calDiaSel.startsWith(calFechaISO(anio, mes, 1).slice(0, 7))) {
+    evs = calEventosVisibles().filter(e => e.fecha === calDiaSel);
+    encabezado = calFmtLargo(calDiaSel);
+  } else {
+    const pref = `${anio}-${String(mes + 1).padStart(2, '0')}`;
+    evs = calEventosVisibles().filter(e => e.fecha.startsWith(pref));
+    encabezado = `Todo ${CAL_MESES[mes]}`;
+  }
+  evs.sort((a, b) => a.fecha.localeCompare(b.fecha) || a.tipo.localeCompare(b.tipo));
+  if (titulo) titulo.textContent = encabezado;
+
+  if (!evs.length) {
+    cont.innerHTML = `<p class="cal-vacio muted">No hay anotaciones${calDiaSel ? ' este día' : ' este mes'}. Tocá un día o el botón “Agregar”.</p>`;
+    return;
+  }
+  cont.innerHTML = evs.map(ev => `
+    <div class="cal-evento cal-evento--${ev.tipo}" data-id="${ev.id}" role="button" tabindex="0">
+      <span class="cal-evento__fecha">
+        <b>${ev.fecha.split('-')[2]}</b>
+        <small>${CAL_MESES[Number(ev.fecha.split('-')[1]) - 1].slice(0, 3)}</small>
+      </span>
+      <span class="cal-evento__body">
+        <span class="cal-evento__tag cal-tag--${ev.tipo}">${CAL_TIPOS[ev.tipo].label}</span>
+        <span class="cal-evento__texto">${escAttr(ev.texto || '')}</span>
+      </span>
+      <button class="cal-evento__del" type="button" aria-label="Borrar anotación">✕</button>
+    </div>`).join('');
+}
+
+/* Editor (modal) */
+let calEditId = null;
+function calAbrirEditor(id, fechaDefault) {
+  calEditId = id;
+  const ev = id ? calendarData.find(e => e.id === id) : null;
+  document.getElementById('cal-modal-title').textContent = ev ? 'Editar anotación' : 'Nueva anotación';
+  document.getElementById('cal-modal-fecha').value = ev ? ev.fecha : (fechaDefault || calHoyISO());
+  document.getElementById('cal-modal-texto').value = ev ? (ev.texto || '') : '';
+  const tipo = ev ? ev.tipo : 'examen';
+  document.querySelectorAll('.cal-tipo-opt').forEach(b => {
+    const on = b.dataset.tipo === tipo;
+    b.classList.toggle('cal-tipo-opt--on', on);
+    b.setAttribute('aria-pressed', String(on));
+  });
+  document.getElementById('cal-modal-del').style.display = ev ? '' : 'none';
+  document.getElementById('cal-modal-backdrop').classList.add('open');
+  setTimeout(() => document.getElementById('cal-modal-texto').focus(), 60);
+}
+function calCerrarEditor() {
+  document.getElementById('cal-modal-backdrop').classList.remove('open');
+  calEditId = null;
+}
+function calTipoSeleccionado() {
+  const on = document.querySelector('.cal-tipo-opt--on');
+  return on ? on.dataset.tipo : 'examen';
+}
+function calGuardarEditor() {
+  const fecha = document.getElementById('cal-modal-fecha').value;
+  const texto = document.getElementById('cal-modal-texto').value.trim();
+  const tipo  = calTipoSeleccionado();
+  if (!fecha) { document.getElementById('cal-modal-fecha').focus(); return; }
+  if (calEditId) {
+    const ev = calendarData.find(e => e.id === calEditId);
+    if (ev) { ev.fecha = fecha; ev.texto = texto; ev.tipo = tipo; }
+  } else {
+    calendarData.push({ id: calNuevoId(), fecha, tipo, texto });
+  }
+  calDiaSel = fecha;
+  const [a, m] = fecha.split('-').map(Number);
+  calView = { anio: a, mes: m - 1 };
+  calGuardar();
+  calCerrarEditor();
+  renderCalendario();
+}
+function calBorrar(id) {
+  const idx = calendarData.findIndex(e => e.id === id);
+  if (idx < 0) return;
+  calendarData.splice(idx, 1);
+  calGuardar();
+  renderCalendario();
+}
+
+function initCalendarioEditorTipos() {
+  document.querySelectorAll('.cal-tipo-opt').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('.cal-tipo-opt').forEach(x => {
+      const on = x === b;
+      x.classList.toggle('cal-tipo-opt--on', on);
+      x.setAttribute('aria-pressed', String(on));
+    });
+  }));
+}
+
+/* ════════════════════════════════════════════════════════
    Init global
    ════════════════════════════════════════════════════════ */
 window.addEventListener('DOMContentLoaded', async () => {
@@ -1928,6 +2195,8 @@ window.addEventListener('DOMContentLoaded', async () => {
   initHistorialControls();
   initGrafo();
   initPlanificador();
+  initCalendario();
+  initCalendarioEditorTipos();
   initTopbarAutohide();
   initLoginScreen();
 
